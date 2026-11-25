@@ -10,12 +10,16 @@ from backend.ai.vision_proctor import VisionProctorPipeline
 
 def test_local_evaluator_high_quality_answer():
     question = "How do you optimize React render cycles when dealing with complex high-frequency WebSocket streams?"
-    answer = "We optimize render cycles by batching WebSocket messages using a debounce queue and memoizing component trees with useMemo and React.memo to prevent unnecessary state cascading."
+    answer = (
+        "We optimize React render cycles by batching WebSocket messages using a debounce and throttle queue, "
+        "memoizing component trees with useMemo, useCallback, and React.memo, and isolating local state "
+        "in a virtual DOM sandbox to prevent unnecessary re-render cascading and reduce latency."
+    )
     result = local_evaluator.evaluate_response(question, answer, suspicious_flags=0)
 
     assert result["score"] >= 70
     assert result["trust_score"] == 100
-    assert "concept depth" in result["ai_critique"]
+    assert "conceptual depth" in result["ai_critique"]
 
 def test_local_evaluator_suspicious_penalties():
     question = "Explain JWT storage strategies."

@@ -1,0 +1,6 @@
+{
+  "name": "hire",
+  "description": "Secure, AI-powered enterprise interview and proctoring platform with real-time candidate integrity monitoring and semantic analytics.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

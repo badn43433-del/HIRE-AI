@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "HireShield AI Enterprise",
+    "slug": "hireshield-ai",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "hireshield",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#020617"
+    },
+    "sdkVersion": "57.0.9",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hireshield.enterprise",
+      "infoPlist": {
+        "NSCameraUsageDescription": "HireShield AI uses your camera for identity verification, eye-gaze tracking, and live technical interviews.",
+        "NSMicrophoneUsageDescription": "HireShield AI uses your microphone for real-time speech-to-text transcript generation and voice activity analysis."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#020617"
+      },
+      "package": "com.hireshield.enterprise",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

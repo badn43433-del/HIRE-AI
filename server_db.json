@@ -1,0 +1,347 @@
+{
+  "sessions": [
+    {
+      "id": "ses-cq5y5zrj",
+      "candidateName": "aswinn",
+      "candidateEmail": "nyctopi@gmail.com",
+      "jobId": "pos-frontend",
+      "status": "camera_check",
+      "currentQuestionIndex": 0,
+      "responses": [],
+      "suspiciousActivities": [],
+      "startedAt": "2026-05-27T08:10:28.528Z",
+      "chats": [],
+      "supportEmergencyActive": false
+    },
+    {
+      "id": "ses-3fhnzvh6",
+      "candidateName": "aswinn ",
+      "candidateEmail": "aswinnsuriyas4017.sse@saveetha.com",
+      "jobId": "pos-1",
+      "status": "camera_check",
+      "currentQuestionIndex": 0,
+      "responses": [],
+      "suspiciousActivities": [],
+      "startedAt": "2026-10-08T14:01:50.657Z",
+      "chats": [],
+      "supportEmergencyActive": false
+    },
+    {
+      "id": "ses-funds4zf",
+      "candidateName": "aswinn ",
+      "candidateEmail": "aswinnsuriyas4017.sse@saveetha.com",
+      "jobId": "pos-1",
+      "status": "camera_check",
+      "currentQuestionIndex": 0,
+      "responses": [],
+      "suspiciousActivities": [],
+      "startedAt": "2026-10-08T14:01:59.501Z",
+      "chats": [],
+      "supportEmergencyActive": false
+    },
+    {
+      "id": "ses-51ycmjq7",
+      "candidateName": "aswinn ",
+      "candidateEmail": "aswinnsuriyas4017.sse@saveetha.com",
+      "jobId": "pos-1",
+      "status": "camera_check",
+      "currentQuestionIndex": 0,
+      "responses": [],
+      "suspiciousActivities": [],
+      "startedAt": "2026-10-08T14:02:09.881Z",
+      "chats": [],
+      "supportEmergencyActive": false
+    }
+  ],
+  "reports": [
+    {
+      "id": "rep-elena",
+      "candidateId": "ses-elena",
+      "candidateName": "Elena Rodriguez",
+      "candidateEmail": "elena.rodriguez@tech-corp.com",
+      "jobPositionId": "pos-1",
+      "jobTitle": "Senior Frontend UI Architect",
+      "technicalScore": 92,
+      "communicationScore": 88,
+      "confidenceScore": 90,
+      "suspicionScore": 8,
+      "finalRank": 1,
+      "shortlistStatus": "SHORTLISTED",
+      "semanticRelevance": 95,
+      "qualitativeNotes": {
+        "strengths": [
+          "Superb description of React high-frequency rendering loop handling. Advised micro-task batching.",
+          "Clear explanation of client-side DOM hijacked protection models.",
+          "Fluent structural breakdown of atomic design parameters."
+        ],
+        "weaknesses": [
+          "Candidate completed all questions very rapidly. Could double core optimization tradeoffs."
+        ],
+        "integritySummary": "Zero focus loss anomalies captured. Webcam alignment maintained completely throughout.",
+        "overallRecommendation": "Exceptional frontend lead demonstrating top tech depth. Proceed to immediate panel interview."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "How do you optimize React render cycles when dealing with complex high-frequency WebSocket streams? Explain memoization patterns and tradeoffs.",
+          "candidateAnswer": "By implementing off-DOM virtual state buffers and custom requestAnimationFrame micro-task scheduling to batch updates.",
+          "aiRationallyScored": "Excellent, details both browser rendering frames and scheduling batches.",
+          "score": 95
+        },
+        {
+          "questionText": "How would you build a client-side sandbox to identify if user extensions or local malicious packages are hijacking input elements in your React UI?",
+          "candidateAnswer": "By setting Object.defineProperty setters on element values, observing mutation vectors, and verifying absolute script hashes.",
+          "aiRationallyScored": "Deep comprehension of Javascript setter hooks and DOM security sandboxing.",
+          "score": 90
+        }
+      ],
+      "suspiciousActivities": []
+    },
+    {
+      "id": "rep-alex",
+      "candidateId": "ses-alex",
+      "candidateName": "Alex Rivera",
+      "candidateEmail": "alex.rivera@concur-tech.io",
+      "jobPositionId": "pos-backend",
+      "jobTitle": "Backend Concurrency Systems Engineer",
+      "technicalScore": 94,
+      "communicationScore": 89,
+      "confidenceScore": 91,
+      "suspicionScore": 12,
+      "finalRank": 2,
+      "shortlistStatus": "SHORTLISTED",
+      "semanticRelevance": 96,
+      "qualitativeNotes": {
+        "strengths": [
+          "Outstanding answer on distributed safety leveraging Redis lease settings.",
+          "Extremely clear query splitting strategy to minimize write-lock contention in Postgres.",
+          "Proactively addresses secondary cache invalidation synchronization logic."
+        ],
+        "weaknesses": [
+          "Could evaluate alternate concurrency protocols like pessimistic write locks vs row locks."
+        ],
+        "integritySummary": "Proctor logged 1 minor, isolated focus loss event at 15s offset. Quickly restored alignment.",
+        "overallRecommendation": "Top tier Backend engineer demonstrating high-caliber system architecture fluency. Fast-track immediately to direct review."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "How do you handle distributed locks and database concurrency issues under high-write load? Explain Redis vs Postgres locking mechanisms.",
+          "candidateAnswer": "By setting a distributed lock key in Redis using SETNX with lease expiration times or running pg_try_advisory_lock in Postgres to avoid core transaction isolation overflows.",
+          "aiRationallyScored": "Exceptional explanation of leased distributed keys. Displays strong mathematical understanding of race conditions.",
+          "score": 94
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-alex1",
+          "type": "focus_lost",
+          "timestamp": "2026-05-27T05:20:15Z",
+          "videoOffsetSeconds": 15,
+          "description": "Minor Alert: Cursor drifted temporarily out of active focus lock grid bounds.",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "id": "rep-ryan",
+      "candidateId": "ses-ryan",
+      "candidateName": "Dr. Ryan Kapoor",
+      "candidateEmail": "ryan.kapoor@decision-sciences.edu",
+      "jobPositionId": "pos-data-science",
+      "jobTitle": "Data Science & NLP Metrics Analyst",
+      "technicalScore": 91,
+      "communicationScore": 92,
+      "confidenceScore": 95,
+      "suspicionScore": 0,
+      "finalRank": 3,
+      "shortlistStatus": "SHORTLISTED",
+      "semanticRelevance": 93,
+      "qualitativeNotes": {
+        "strengths": [
+          "Superb theoretical precision vs recall tradeoffs under highly unbalanced modeling conditions.",
+          "Mathematically sound description of SHAP margin values and tree ensemble validation layouts.",
+          "Displays high awareness of data hygiene and bias sanitization pipelines."
+        ],
+        "weaknesses": [
+          "Could expand more on character-level tokenizers regarding unstructured documents."
+        ],
+        "integritySummary": "Flawless integrity. Eye tracker recorded 100% active focus alignment throughout.",
+        "overallRecommendation": "Phenomenal talent with a highly advanced research pedigree. Highly recommended."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "Explain the difference between classification precision and recall. How do you handle highly imbalanced datasets when training fraudulent behavior detection models?",
+          "candidateAnswer": "Precision represents true positive rate over positive predictions, whereas recall assesses true positive rates over real actual positive counts. For extremely imbalanced fraud datasets, SMOTE synthetic sampling paired with PR-AUC metric validations are preferred.",
+          "aiRationallyScored": "Scientifically accurate definitions. Correctly prioritizes PR-AUC over ROC for severe imbalances.",
+          "score": 91
+        }
+      ],
+      "suspiciousActivities": []
+    },
+    {
+      "id": "rep-marcus",
+      "candidateId": "ses-marcus",
+      "candidateName": "Marcus Thorne",
+      "candidateEmail": "marcus.t@defense-network.io",
+      "jobPositionId": "pos-2",
+      "jobTitle": "Cybersecurity & Proctoring Architect",
+      "technicalScore": 78,
+      "communicationScore": 80,
+      "confidenceScore": 75,
+      "suspicionScore": 25,
+      "finalRank": 4,
+      "shortlistStatus": "STANDBY",
+      "semanticRelevance": 82,
+      "qualitativeNotes": {
+        "strengths": [
+          "Good experience with browser permission layers and iframe secure guidelines.",
+          "Solid knowledge of JWT structures."
+        ],
+        "weaknesses": [
+          "Did not outline concrete steps to manage CORS headers under third party scripts.",
+          "Exhibited 1 potential window blur event midway through."
+        ],
+        "integritySummary": "Proctor security logged 2 suspicious alerts. Focus loss and ocular drift flagged on timeline.",
+        "overallRecommendation": "Competent security architect with clear real-world experience. Recommend standby evaluation."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "Explain how a secure client-side listener can proactively monitor and log window blur, tab switching, or external screen mirroring. What are browser limitations?",
+          "candidateAnswer": "By attaching listeners to blur and visibilitychange. Mirroring can be checked via window.screen dimensions and browser media stream outputs.",
+          "aiRationallyScored": "Understands correct events. Lacks extensive explanation of iframe sandboxing differences.",
+          "score": 80
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-mar1",
+          "type": "focus_lost",
+          "timestamp": "2026-05-27T05:10:15Z",
+          "videoOffsetSeconds": 15,
+          "description": "Candidate switched focus or minimized browser window.",
+          "severity": "medium"
+        },
+        {
+          "id": "evt-mar2",
+          "type": "reading_behavior",
+          "timestamp": "2026-05-27T05:10:45Z",
+          "videoOffsetSeconds": 45,
+          "description": "Automated gaze tracker logged subtle reading glances off-center.",
+          "severity": "low"
+        }
+      ]
+    },
+    {
+      "id": "rep-chloe",
+      "candidateId": "ses-chloe",
+      "candidateName": "Chloe Mercer",
+      "candidateEmail": "chloe.mercer@ux-labs.com",
+      "jobPositionId": "pos-frontend",
+      "jobTitle": "Frontend UI/UX Performance Engineer",
+      "technicalScore": 72,
+      "communicationScore": 78,
+      "confidenceScore": 81,
+      "suspicionScore": 55,
+      "finalRank": 5,
+      "shortlistStatus": "STANDBY",
+      "semanticRelevance": 79,
+      "qualitativeNotes": {
+        "strengths": [
+          "Solid knowledge of CSS keyframe optimizations and web rendering bottlenecks.",
+          "Energetic communication with good presentation flow."
+        ],
+        "weaknesses": [
+          "Relied on generic asset compression advice without addressing Vite-level bundles.",
+          "Switched screens multiple times during key questions."
+        ],
+        "integritySummary": "Proctoring flags indicate 2 distinct tab switches midway. Highly suspicious latency gap recorded.",
+        "overallRecommendation": "Intelligent frontend developer, but multiple tab-switching proctor alerts denote high compliance risk. Keep on Standby."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "Describe how you optimize browser load-time performance. Explain code splitting, asset preloading, and critical rendering path optimizations.",
+          "candidateAnswer": "We can split code using dynamic dynamic imports in Vite and load critical styles at the top, prefetching assets as needed through standard links.",
+          "aiRationallyScored": "Good basic overview. Failed to mention critical path rendering details or optimization benchmarks.",
+          "score": 72
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-chloe1",
+          "type": "tab_switch",
+          "timestamp": "2026-05-27T05:25:42Z",
+          "videoOffsetSeconds": 42,
+          "description": "Security Alert: Browser tab switched away to open external resources.",
+          "severity": "medium"
+        },
+        {
+          "id": "evt-chloe2",
+          "type": "tab_switch",
+          "timestamp": "2026-05-27T05:26:12Z",
+          "videoOffsetSeconds": 72,
+          "description": "Security Alert: Second tab focus switch recorded during live coding responses.",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "id": "rep-david",
+      "candidateId": "ses-david",
+      "candidateName": "David Chen",
+      "candidateEmail": "david.chen@ai-systems.co",
+      "jobPositionId": "pos-3",
+      "jobTitle": "AI & NLP Platform Alchemist",
+      "technicalScore": 61,
+      "communicationScore": 70,
+      "confidenceScore": 55,
+      "suspicionScore": 85,
+      "finalRank": 6,
+      "shortlistStatus": "REJECTED",
+      "semanticRelevance": 61,
+      "qualitativeNotes": {
+        "strengths": [
+          "Demonstrates basic intuition on language model prompt temperature configuration."
+        ],
+        "weaknesses": [
+          "Answers contain several copy-pasted layout outlines. Severe proctor lockdown deviations flagged.",
+          "Continuous reading glances off-cam recorded."
+        ],
+        "integritySummary": "CRITICAL ALERT: Candidate switched windows/tabs 3 distinct times. Secondary face detected on webcam.",
+        "overallRecommendation": "Rejected. High-risk tab switching violations occurred during active proctor stream."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "How do you configure structured output guidelines (responseSchema) to guarantee your GenAI outputs never drift into hallucinations?",
+          "candidateAnswer": "Specify JSON schemas with typed properties. But actually I would write some code that checks with regular expressions.",
+          "aiRationallyScored": "Candidate answered with very brief and fragmented paragraphs. Did not refer to structural SDK capabilities.",
+          "score": 61
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-dav1",
+          "type": "tab_switch",
+          "timestamp": "2026-05-27T05:15:20Z",
+          "videoOffsetSeconds": 20,
+          "description": "Critical Warning: Browser focus minimized.",
+          "severity": "high"
+        },
+        {
+          "id": "evt-dav2",
+          "type": "tab_switch",
+          "timestamp": "2026-05-27T05:15:52Z",
+          "videoOffsetSeconds": 52,
+          "description": "Critical Warning: Secondary tab switch logged during proctored evaluation.",
+          "severity": "high"
+        },
+        {
+          "id": "evt-dav3",
+          "type": "multiple_faces",
+          "timestamp": "2026-05-27T05:16:18Z",
+          "videoOffsetSeconds": 78,
+          "description": "Visual Proctor Anomaly: Multiple face silhouettes detected within active scanning margins.",
+          "severity": "high"
+        }
+      ]
+    }
+  ]
+}

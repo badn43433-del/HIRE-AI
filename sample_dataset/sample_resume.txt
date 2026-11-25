@@ -1,0 +1,28 @@
+SARAH JENKINS
+Senior Frontend UI Architect
+Email: sarah.jenkins@enterprise-recruit.com | Phone: +1 (555) 019-2834
+Location: New York, NY | Portfolio: https://github.com/sarahjenkins-dev
+
+EXECUTIVE SUMMARY
+Distinguished Frontend Systems Architect with 8+ years experience engineering mission-critical, high-throughput React applications, real-time WebRTC collaborative canvases, and state machine architectures. Champion of defensive browser sandboxing, micro-frontends, and automated performance profiling.
+
+CORE TECHNICAL SKILLS
+- Languages: TypeScript, JavaScript (ESNext), Python, HTML5, CSS3/Tailwind
+- Frameworks & Libraries: React 19, Vite, Next.js, Redux Toolkit, XState, RxJS
+- Real-Time & Media: WebRTC, WebSockets, HTML5 Canvas API, AudioContext, MediaRecorder
+- Security & Standards: Content Security Policy (CSP), JWT Rotation, XSS/CSRF Hardening, OWASP Top 10
+- DevOps & Quality: Docker, GitHub Actions, Vitest, Cypress, Jest, Lighthouse CI
+
+PROFESSIONAL EXPERIENCE
+
+Lead Frontend Architect | CloudScale Tech (2022 - Present)
+- Architected enterprise real-time collaboration canvas supporting 250+ concurrent users with zero frame drops.
+- Reduced React re-render cycles by 64% through selective memoization and off-main-thread Web Worker pipelines.
+- Spearheaded company-wide Zero-Trust browser security standard, mitigating third-party script injection vectors.
+
+Senior Frontend Engineer | DataStream Systems (2018 - 2022)
+- Built high-frequency financial telemetry dashboards streaming 10,000 WebSocket events/sec without UI lag.
+- Implemented robust WebRTC peer signaling failover logic with auto-reconnection and bandwidth adaptation.
+
+EDUCATION
+B.S. in Computer Science & Applied Mathematics | University of Washington

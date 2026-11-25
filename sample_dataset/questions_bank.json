@@ -1,0 +1,38 @@
+[
+  {
+    "id": "q-fe-01",
+    "track": "Frontend Architecture",
+    "difficulty": "Senior",
+    "question": "How do you optimize React render cycles when dealing with complex high-frequency WebSocket streams? Explain memoization patterns and tradeoffs.",
+    "ideal_keywords": ["memo", "usememo", "usecallback", "re-render", "batching", "virtualization", "shallow comparison", "profiler", "web worker"],
+    "rubric": {
+      "technical_depth_weight": 0.40,
+      "communication_weight": 0.30,
+      "problem_solving_weight": 0.30
+    }
+  },
+  {
+    "id": "q-sec-02",
+    "track": "Cybersecurity & Proctoring",
+    "difficulty": "Lead",
+    "question": "Design a secure, multi-layered JWT storage and rotation structure in a React/Express application to restrict Session Hijacking if local security is compromised.",
+    "ideal_keywords": ["httponly", "refresh token", "rotation", "signature", "csrf", "xss", "in-memory access token", "short-lived", "replay attack"],
+    "rubric": {
+      "technical_depth_weight": 0.45,
+      "communication_weight": 0.25,
+      "problem_solving_weight": 0.30
+    }
+  },
+  {
+    "id": "q-ds-03",
+    "track": "AI & NLP Systems",
+    "difficulty": "Lead",
+    "question": "Explain how you would architect a secure, auditable pipeline for on-device model scoring of sensitive human video and audio telemetry to align with GDPR compliance rules.",
+    "ideal_keywords": ["edge inference", "zero data retention", "mediapipe", "pseudonymization", "encryption at rest", "consent audit trail", "anonymization"],
+    "rubric": {
+      "technical_depth_weight": 0.50,
+      "communication_weight": 0.25,
+      "problem_solving_weight": 0.25
+    }
+  }
+]

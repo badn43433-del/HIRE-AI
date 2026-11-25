@@ -1,0 +1,18 @@
+[
+  {
+    "candidate": "Sarah Jenkins",
+    "role": "Senior Frontend UI Architect",
+    "question": "How do you optimize React render cycles when dealing with complex high-frequency WebSocket streams?",
+    "answer": "When handling high-frequency WebSocket streams arriving every 10ms, rendering each tick directly causes severe UI main thread blocking. I buffer incoming messages inside a mutable ref queue and flush them into React state at 60fps intervals using requestAnimationFrame or a throttle debounce hook. We also isolate volatile message components with React.memo and pure custom hooks, keeping the broader page subtree unrendered.",
+    "ground_truth_score": 92,
+    "ground_truth_verdict": "SHORTLISTED"
+  },
+  {
+    "candidate": "David Chen",
+    "role": "Cybersecurity & Proctoring Architect",
+    "question": "Design a secure, multi-layered JWT storage and rotation structure in a React/Express application to restrict Session Hijacking.",
+    "answer": "We store access tokens purely in JavaScript memory or Web Worker scopes with a 10-minute expiry. The long-lived refresh token is saved inside a strictly HttpOnly, SameSite=Strict cookie with path isolation. On each refresh, we generate a brand-new refresh token family and invalidate past tokens to detect replay attacks.",
+    "ground_truth_score": 88,
+    "ground_truth_verdict": "SHORTLISTED"
+  }
+]

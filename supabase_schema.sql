@@ -158,19 +158,60 @@ CREATE INDEX IF NOT EXISTS idx_reports_candidate_id ON public.reports(candidate_
 CREATE INDEX IF NOT EXISTS idx_chats_session_id ON public.chats(session_id);
 CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON public.system_audit_logs(timestamp);
 
--- Row Level Security (RLS) Enablement
+-- Row Level Security (RLS) Enablement on ALL exposed public tables
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.candidate_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.scheduled_interviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.suspicious_activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.system_audit_logs ENABLE ROW LEVEL SECURITY;
 
--- Sample RLS Policies
-CREATE POLICY "Admins have full access" ON public.users FOR ALL USING (true);
-CREATE POLICY "Public read for positions" ON public.positions FOR SELECT USING (true);
-CREATE POLICY "Candidates view own interviews" ON public.scheduled_interviews FOR SELECT USING (true);
+-- Secure RLS Policies (using TO authenticated + ownership / app_metadata, never user_metadata)
+DROP POLICY IF EXISTS "Admins have full access" ON public.users;
+DROP POLICY IF EXISTS "Public read for positions" ON public.positions;
+DROP POLICY IF EXISTS "Candidates view own interviews" ON public.scheduled_interviews;
+
+CREATE POLICY "Users read own profile"
+  ON public.users FOR SELECT
+  TO authenticated
+  USING ((select auth.uid()) = id);
+
+CREATE POLICY "Users update own profile"
+  ON public.users FOR UPDATE
+  TO authenticated
+  USING ((select auth.uid()) = id)
+  WITH CHECK ((select auth.uid()) = id);
+
+CREATE POLICY "Candidates manage own profile"
+  ON public.candidate_profiles FOR ALL
+  TO authenticated
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
+
+CREATE POLICY "Authenticated users read positions"
+  ON public.positions FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Participants view own interviews"
+  ON public.scheduled_interviews FOR SELECT
+  TO authenticated
+  USING (
+    (select auth.uid()) = candidate_id
+    OR (select auth.uid()) = interviewer_id
+    OR (auth.jwt() -> 'app_metadata' ->> 'role') = 'interviewer'
+  );
+
+CREATE POLICY "Authenticated users view own reports"
+  ON public.reports FOR SELECT
+  TO authenticated
+  USING (
+    (select auth.uid())::text = candidate_id
+    OR (auth.jwt() -> 'app_metadata' ->> 'role') = 'interviewer'
+  );
 
 -- Seed Positions
 INSERT INTO public.positions (id, title, department, description, difficulty, question_bank)

@@ -1,36 +1,88 @@
 /**
- * 🔒 HireShield AI: Supabase Connection Service
+ * 🔒 HireShield AI: Supabase Connection & Auth Service
  * Supports dynamic configuration via VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
- * Falls back gracefully to local storage mock database if keys are not provided.
+ * Falls back gracefully to local Express / sandbox mode if keys are not provided.
  */
 
-import { JobPosition, InterviewSession, AIEvaluationReport, SuspiciousActivity, ChatMessage } from "./types";
+import { createClient, SupabaseClient, Session, User } from "@supabase/supabase-js";
+import { JobPosition, InterviewSession, AIEvaluationReport, SuspiciousActivity, ChatMessage, UserRole } from "./types";
 
 const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || "";
 
-let supabaseClient: any = null;
+const hasValidConfig =
+  Boolean(SUPABASE_URL) &&
+  Boolean(SUPABASE_ANON_KEY) &&
+  !SUPABASE_URL.includes("your-project.supabase.co") &&
+  !SUPABASE_ANON_KEY.includes("your-supabase-anon-key");
 
-// Initialize Supabase Client if keys are configured
-if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-  try {
-    const supabaseLib = (window as any).supabase;
-    if (supabaseLib) {
-      supabaseClient = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      console.log("🔥 HireShield AI: Supabase Client Initialized Successfully!");
-    } else {
-      console.warn("⚠️ Supabase script CDN not loaded yet. Falling back to HTTP/Local mode.");
-    }
-  } catch (error) {
-    console.error("❌ Failed to initialize Supabase client:", error);
-  }
+export const supabase: SupabaseClient | null = hasValidConfig
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  })
+  : null;
+
+const supabaseClient = supabase;
+
+if (supabaseClient) {
+  console.log("🔥 HireShield AI: Supabase Client Initialized Successfully!");
 } else {
-  console.log("ℹ️ Supabase environment variables missing. Operating in hybrid/local proctoring mode.");
+  console.log("ℹ️ Supabase environment variables not configured. Operating in local/Express fallback mode.");
 }
 
 export const isSupabaseConnected = (): boolean => {
   return supabaseClient !== null;
 };
+
+// --- Supabase Auth Helpers ---
+
+export async function signInWithSupabase(email: string, password: string): Promise<{ session: Session | null; user: User | null; error: string | null }> {
+  if (!supabaseClient) {
+    return { session: null, user: null, error: "Supabase is not configured." };
+  }
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if (error) {
+    return { session: null, user: null, error: error.message };
+  }
+  return { session: data.session, user: data.user, error: null };
+}
+
+export async function signUpWithSupabase(
+  email: string,
+  password: string,
+  name: string,
+  role: UserRole
+): Promise<{ session: Session | null; user: User | null; error: string | null; needsEmailConfirmation: boolean }> {
+  if (!supabaseClient) {
+    return { session: null, user: null, error: "Supabase is not configured.", needsEmailConfirmation: false };
+  }
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: name, requested_role: role },
+    },
+  });
+  if (error) {
+    return { session: null, user: null, error: error.message, needsEmailConfirmation: false };
+  }
+  return {
+    session: data.session,
+    user: data.user,
+    error: null,
+    needsEmailConfirmation: !data.session,
+  };
+}
+
+export async function signOutSupabase(): Promise<void> {
+  if (supabaseClient) {
+    await supabaseClient.auth.signOut();
+  }
+}
 
 // --- API & Fallback Helper Actions ---
 
@@ -192,6 +244,7 @@ export async function fetchReports(): Promise<AIEvaluationReport[]> {
         communicationScore: rep.communication_score,
         confidenceScore: rep.confidence_score,
         suspicionScore: rep.suspicion_score,
+        trustScore: rep.trust_score ?? Math.max(0, 100 - (rep.suspicion_score ?? 0)),
         finalRank: rep.final_rank,
         shortlistStatus: rep.shortlist_status,
         semanticRelevance: rep.semantic_relevance,

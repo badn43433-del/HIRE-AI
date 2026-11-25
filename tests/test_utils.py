@@ -54,3 +54,4 @@ class SuiteRecorder:
         with open(self.out_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2)
         return 0 if failed == 0 else 1
+

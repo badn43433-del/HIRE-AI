@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { UserRole } from "../../types";
+import { isSupabaseConnected, signInWithSupabase, signUpWithSupabase } from "../../supabaseClient";
 
 interface AuthPortalProps {
   onLoginSuccess: (name: string, email: string, role: UserRole) => void;
@@ -115,7 +116,7 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
     }
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorText("");
 
@@ -128,10 +129,29 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
       return;
     }
 
+    if (isSupabaseConnected()) {
+      setIsSubmitting(true);
+      const { session, user, error } = await signInWithSupabase(email.trim(), password);
+      setIsSubmitting(false);
+      if (error || !session || !user) {
+        setErrorText(error || "Invalid email or password.");
+        return;
+      }
+      const roleFromMeta = user.app_metadata?.role;
+      const resolvedRole: UserRole =
+        roleFromMeta === "candidate" || roleFromMeta === "interviewer" ? roleFromMeta : selectedRole;
+      onLoginSuccess(
+        user.user_metadata?.full_name || name || email.split("@")[0],
+        user.email || email,
+        resolvedRole
+      );
+      return;
+    }
+
     handleSendOtp(email, selectedRole, name);
   };
 
-  const handleSignUpSubmit = (e: React.FormEvent) => {
+  const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorText("");
 
@@ -149,6 +169,30 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
     }
     if (password !== confirmPassword) {
       setErrorText("Passwords do not match.");
+      return;
+    }
+
+    if (isSupabaseConnected()) {
+      setIsSubmitting(true);
+      const { session, user, error, needsEmailConfirmation } = await signUpWithSupabase(
+        email.trim(),
+        password,
+        name.trim(),
+        selectedRole
+      );
+      setIsSubmitting(false);
+      if (error) {
+        setErrorText(error);
+        return;
+      }
+      if (needsEmailConfirmation) {
+        setSuccessText("Account created! Please check your email to confirm your address before signing in.");
+        setAuthMode("login");
+        return;
+      }
+      if (session && user) {
+        onLoginSuccess(name.trim(), user.email || email.trim(), selectedRole);
+      }
       return;
     }
 

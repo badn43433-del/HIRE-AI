@@ -14,8 +14,10 @@ import nodemailer from "nodemailer";
 // Load environment variables
 dotenv.config();
 
-// Since we are running in full-stack ESM mode, define __dirname
-const __filename = fileURLToPath(import.meta.url);
+// Since we support both ESM (tsx) and bundled CJS (node dist/server.cjs)
+const __filename = typeof import.meta?.url === "string"
+  ? fileURLToPath(import.meta.url)
+  : path.join(process.cwd(), "server.cjs");
 const __dirname = path.dirname(__filename);
 
 const app = express();

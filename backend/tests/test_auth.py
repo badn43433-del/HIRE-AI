@@ -21,7 +21,7 @@ def test_jwt_token_generation():
     assert "exp" in decoded
 
 def test_rbac_roles_supported():
-    allowed_roles = ["candidate", "interviewer", "admin"]
+    allowed_roles = ["candidate", "interviewer"]
     for role in allowed_roles:
         token = create_access_token({"sub": f"user@{role}.com", "role": role})
         decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])

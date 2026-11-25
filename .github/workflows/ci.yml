@@ -1,0 +1,109 @@
+name: HireShield AI CI & Automated Test Suite
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test-and-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Node.js dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Install Python test & security dependencies
+        run: pip install -r tests/requirements-ci.txt
+
+      - name: TypeScript check & Production Build
+        run: |
+          mkdir -p reports
+          npx tsc --noEmit
+          npm run build
+          python -c '
+          import json
+          data = {
+            "suite": "TypeScript & Build",
+            "passed": 2,
+            "failed": 0,
+            "total": 2,
+            "metrics": {},
+            "cases": [
+              {"suite": "TypeScript & Build", "name": "TC-BUILD-01: TypeScript (tsc --noEmit)", "status": "PASS", "duration_ms": 0, "details": "Zero type errors"},
+              {"suite": "TypeScript & Build", "name": "TC-BUILD-02: Vite + Server Bundle", "status": "PASS", "duration_ms": 0, "details": "dist/ built cleanly"}
+            ]
+          }
+          open("reports/build_results.json", "w").write(json.dumps(data, indent=2))
+          '
+
+      - name: Run Backend Unit Tests (Pytest)
+        env:
+          PYTHONPATH: .
+        run: pytest backend/tests/ -v --junitxml=reports/junit-unit.xml
+
+      - name: Start Appium 2 Server (Chromium Driver)
+        run: |
+          npm install -g appium
+          appium driver install chromium
+          nohup appium --port 4723 > /tmp/appium.log 2>&1 &
+          for i in $(seq 1 20); do
+            if curl -s http://127.0.0.1:4723/status > /dev/null; then
+              echo "Appium server ready"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Start HireShield AI Server
+        env:
+          NODE_ENV: production
+          PORT: "3000"
+        run: |
+          nohup npm start > /tmp/server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -s http://127.0.0.1:3000/api/positions > /dev/null; then
+              echo "HireShield AI server ready"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run Selenium E2E Tests
+        run: python tests/selenium_test.py
+
+      - name: Run Appium Mobile Tests
+        run: python tests/appium_test.py
+
+      - name: Run Vulnerability & Security Tests
+        run: python tests/vulnerability_test.py
+
+      - name: Run Concurrent Load Tests
+        run: python tests/load_test.py
+
+      - name: Generate Excel Test Report (.xlsx)
+        if: always()
+        run: python tests/generate_excel_report.py
+
+      - name: Upload Excel Test Report Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: HireShield-Test-Report-Excel
+          path: reports/HireShield_Test_Report.xlsx
+          retention-days: 30

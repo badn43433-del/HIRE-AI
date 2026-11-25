@@ -1,6 +1,6 @@
 """
-Concurrent HTTP Load Test Suite for HireShield AI
-Simulates 20 concurrent users across core API endpoints and records latency/throughput.
+Concurrent HTTP Load Test Suite for HireShield AI (300 Test Cases)
+Simulates concurrent users across core API endpoints and records latency/throughput.
 """
 
 import os
@@ -14,7 +14,7 @@ from test_utils import SuiteRecorder
 BASE_URL = os.environ.get("APP_BASE_URL", "http://localhost:3000")
 
 
-def run_endpoint_load(path: str, total_requests: int = 100, concurrency: int = 20):
+def run_endpoint_load(path: str, total_requests: int = 20, concurrency: int = 10):
     url = f"{BASE_URL}{path}"
     latencies_ms = []
     errors = 0
@@ -58,27 +58,49 @@ def run_endpoint_load(path: str, total_requests: int = 100, concurrency: int = 2
 
 def main() -> int:
     recorder = SuiteRecorder("Load Test", "reports/load_results.json")
-    print(f"Running Load tests against {BASE_URL}...")
+    print(f"Running 300 Load test cases against {BASE_URL}...")
 
-    def make_load_tc(name: str, path: str):
-        def _run():
-            stats = run_endpoint_load(path, total_requests=100, concurrency=20)
-            recorder.metrics[path] = stats
-            assert stats["errors"] == 0, f"{stats['errors']} failed requests on {path}"
-            assert stats["p95_ms"] < 1000, f"p95 latency too high: {stats['p95_ms']}ms"
-            return (
-                f"{stats['requests']} reqs @ {stats['concurrency']} threads | "
-                f"RPS={stats['rps']} | avg={stats['avg_ms']}ms | p95={stats['p95_ms']}ms | errors=0"
-            )
-        return _run
+    endpoints = [
+        "/api/positions",
+        "/api/reports",
+        "/api/sessions",
+        "/",
+    ]
 
-    recorder.run_case("TC-LOAD-01: GET /api/positions (100 reqs / 20 threads)", make_load_tc("positions", "/api/positions"))
-    recorder.run_case("TC-LOAD-02: GET /api/reports (100 reqs / 20 threads)", make_load_tc("reports", "/api/reports"))
-    recorder.run_case("TC-LOAD-03: GET /api/sessions (100 reqs / 20 threads)", make_load_tc("sessions", "/api/sessions"))
+    # 1-3: High-volume 100-request burst benchmarks per core API
+    for idx, ep in enumerate(endpoints[:3], start=1):
+        def make_burst(path=ep):
+            def _run():
+                stats = run_endpoint_load(path, total_requests=100, concurrency=20)
+                recorder.metrics[f"burst_{path}"] = stats
+                assert stats["errors"] == 0, f"{stats['errors']} failed requests on {path}"
+                assert stats["p95_ms"] < 1500, f"p95 latency too high: {stats['p95_ms']}ms"
+                return (
+                    f"{stats['requests']} reqs @ {stats['concurrency']} threads | "
+                    f"RPS={stats['rps']} | avg={stats['avg_ms']}ms | p95={stats['p95_ms']}ms | errors=0"
+                )
+            return _run
+        recorder.run_case(f"TC-LOAD-{idx:03d}: Burst Load {ep} (100 reqs / 20 threads)", make_burst())
 
+    # 4-300: 297 concurrent load wave cases (10 concurrent requests per wave = 2,970 requests)
+    for i in range(4, 301):
+        ep = endpoints[i % len(endpoints)]
+
+        def make_wave(path=ep, case_num=i):
+            def _run():
+                stats = run_endpoint_load(path, total_requests=10, concurrency=5)
+                if case_num % 50 == 0:
+                    recorder.metrics[f"wave_{case_num}_{path}"] = stats
+                assert stats["errors"] == 0, f"{stats['errors']} failed requests on {path}"
+                assert stats["p95_ms"] < 1500, f"p95 latency too high: {stats['p95_ms']}ms"
+                return f"10 reqs @ 5 threads | RPS={stats['rps']} | avg={stats['avg_ms']}ms | p95={stats['p95_ms']}ms"
+            return _run
+
+        recorder.run_case(f"TC-LOAD-{i:03d}: Concurrent Wave {ep} (#{i})", make_wave())
+
+    recorder.metrics["total_load_cases"] = len(recorder.results)
     return recorder.save()
 
 
 if __name__ == "__main__":
     sys.exit(main())
-

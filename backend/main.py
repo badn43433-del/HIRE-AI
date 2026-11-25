@@ -8,6 +8,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, List
 import json
+import os
 
 from backend.routers import auth, candidates, interviews, proctoring, admin
 
@@ -88,4 +89,9 @@ async def websocket_room_endpoint(websocket: WebSocket, session_id: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "backend.main:app",
+        host=os.getenv("FASTAPI_HOST", "127.0.0.1"),
+        port=int(os.getenv("FASTAPI_PORT", "8000")),
+        reload=os.getenv("FASTAPI_RELOAD", "false").lower() == "true",
+    )

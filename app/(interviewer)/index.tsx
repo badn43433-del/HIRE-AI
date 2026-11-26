@@ -3,15 +3,28 @@
  * Runs on Web, Android, and iOS (Expo Go SDK 57.0.9)
  */
 
-import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { CrossButton } from "../../components/crossplatform/Button";
 import { CrossCard } from "../../components/crossplatform/Card";
 import { CrossBadge } from "../../components/crossplatform/Badge";
+import { MobileHeader } from "../../components/crossplatform/MobileHeader";
+import { useMobileAuth } from "../../services/mobileAuthContext";
 import { MOCK_SCHEDULED_INTERVIEWS } from "../../src/mockData";
 
 export default function InterviewerDashboard() {
   const [activeTab, setActiveTab] = useState<"pipeline" | "copilot" | "verdicts">("pipeline");
+  const { session, isRestoring, theme } = useMobileAuth();
+  const router = useRouter();
+  const isLight = theme === "light";
+
+  useEffect(() => {
+    if (!isRestoring && !session) {
+      router.replace("/");
+    }
+  }, [isRestoring, session, router]);
 
   // Rubric Scores
   const [rubricScores, setRubricScores] = useState({
@@ -22,12 +35,13 @@ export default function InterviewerDashboard() {
   });
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, isLight && styles.safeAreaLight]} edges={["top", "bottom"]}>
+      <MobileHeader />
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>INTERVIEWER CO-PILOT CONSOLE</Text>
-          <Text style={styles.subtitle}>Lead Evaluator: Marcus Vance • Staff Engineering</Text>
+          <Text style={[styles.title, isLight && styles.titleDark]}>INTERVIEWER CO-PILOT CONSOLE</Text>
+          <Text style={styles.subtitle}>Lead Evaluator: {session?.name || "Marcus Vance"} • Staff Engineering</Text>
         </View>
 
         {/* Tab Row */}
@@ -161,6 +175,12 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#020617",
+  },
+  safeAreaLight: {
+    backgroundColor: "#f8fafc",
+  },
+  titleDark: {
+    color: "#0f172a",
   },
   container: {
     padding: 16,

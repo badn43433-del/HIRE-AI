@@ -9,12 +9,13 @@ import {
   Text, 
   StyleSheet, 
   ScrollView, 
-  SafeAreaView, 
   TouchableOpacity, 
   Platform,
   TextInput,
   KeyboardAvoidingView
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { CrossButton } from "../../components/crossplatform/Button";
 import { CrossCard } from "../../components/crossplatform/Card";
 import { CrossBadge } from "../../components/crossplatform/Badge";
@@ -68,7 +69,7 @@ export default function CandidateLiveRoom() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={styles.container}>
           {/* Top Session Ribbon */}

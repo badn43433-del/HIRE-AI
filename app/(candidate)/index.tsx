@@ -3,23 +3,37 @@
  * Runs on Web, Android, and iOS (Expo Go SDK 57.0.9)
  */
 
-import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { CrossButton } from "../../components/crossplatform/Button";
 import { CrossCard } from "../../components/crossplatform/Card";
 import { CrossBadge } from "../../components/crossplatform/Badge";
+import { MobileHeader } from "../../components/crossplatform/MobileHeader";
+import { useMobileAuth } from "../../services/mobileAuthContext";
 import { MOCK_SCHEDULED_INTERVIEWS } from "../../src/mockData";
 
 export default function CandidateDashboard() {
   const [activeTab, setActiveTab] = useState<"interviews" | "diagnostics" | "scorecards">("interviews");
+  const { session, isRestoring, theme } = useMobileAuth();
+  const router = useRouter();
+  const isLight = theme === "light";
+
+  useEffect(() => {
+    if (!isRestoring && !session) {
+      router.replace("/");
+    }
+  }, [isRestoring, session, router]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, isLight && styles.safeAreaLight]} edges={["top", "bottom"]}>
+      <MobileHeader />
       <ScrollView contentContainerStyle={styles.container}>
         {/* Welcome Hero */}
         <CrossCard style={styles.heroCard}>
           <CrossBadge label="Candidate Portal Active" variant="primary" />
-          <Text style={styles.welcomeTitle}>Welcome Back, Sarah Jenkins! 🌟</Text>
+          <Text style={styles.welcomeTitle}>Welcome Back, {session?.name || "Candidate"}! 🌟</Text>
           <Text style={styles.welcomeSubtitle}>
             Prepare, practice, and complete proctored live technical assessments powered by local open-source AI.
           </Text>
@@ -66,7 +80,7 @@ export default function CandidateDashboard() {
                   <CrossButton
                     title="Pre-Flight & Join"
                     variant="success"
-                    onPress={() => alert(`Launching assessment room for ${item.roleTitle}`)}
+                    onPress={() => router.push("/(candidate)/live-room")}
                     style={styles.joinBtn}
                   />
                 </View>
@@ -132,6 +146,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#020617",
+  },
+  safeAreaLight: {
+    backgroundColor: "#f8fafc",
   },
   container: {
     padding: 16,

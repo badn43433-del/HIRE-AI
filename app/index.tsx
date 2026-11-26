@@ -86,7 +86,7 @@ export default function HomeScreen() {
             title={`Enter ${selectedRole.toUpperCase()} Dashboard`}
             variant="success"
             onPress={() => {
-              if (Platform.OS === "web" && typeof window !== "undefined") {
+              if (Platform.OS === "web" && typeof window !== "undefined" && typeof localStorage !== "undefined") {
                 // Web: set localStorage and reload for auth state to pick up
                 localStorage.setItem("hireshield_is_logged_in", "true");
                 localStorage.setItem("hireshield_role", selectedRole);

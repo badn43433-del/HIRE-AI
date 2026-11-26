@@ -102,7 +102,7 @@ export default function CandidateLiveRoom() {
             </CrossCard>
 
             {/* Candidate Video Tile with AI indicator */}
-            <CrossCard style={[styles.videoTile, cameraOff && styles.videoTileOff]}>
+            <CrossCard style={[styles.videoTile as any, cameraOff && styles.videoTileOff]}>
               <View style={styles.avatarCircleCandidate}>
                 <Text style={styles.avatarInitials}>{cameraOff ? "📷" : "SJ"}</Text>
               </View>
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#090d16",
     borderColor: "#1e293b",
-    position: "relative",
+    position: "relative" as const,
   },
   avatarCircle: {
     width: 48,

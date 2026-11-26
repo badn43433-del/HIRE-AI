@@ -1,19 +1,22 @@
-const { getDefaultConfig } = require('expo/metro-config');
+import { getDefaultConfig } from "expo/metro-config";
+import { fileURLToPath } from "url";
+import path from "path";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const config = getDefaultConfig(__dirname);
 
-// Enable React Native Web module resolution
-// Resolves .web.tsx/.web.ts/.web.js platform-specific extensions first
 config.resolver.sourceExts = [
-  'web.tsx', 'web.ts', 'web.jsx', 'web.js',
+  "web.tsx",
+  "web.ts",
+  "web.jsx",
+  "web.js",
   ...config.resolver.sourceExts,
 ];
 
-// Map react-native -> react-native-web when bundling for web target
 config.resolver.resolverMainFields = [
-  'react-native',
-  'browser',
-  'main',
+  "react-native",
+  "browser",
+  "main",
 ];
 
-module.exports = config;
+export default config;

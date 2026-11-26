@@ -165,6 +165,37 @@ async function main() {
     return `Model=${data.model} | Reply=${data.reply}`;
   });
 
+  // 9. Sign-up -> Immediate Login (Case/Whitespace normalization & persisted userId)
+  await runTest("E2E-09: Sign-Up & Immediate Login (User ID persisted)", async () => {
+    const uniqueEmail = `e2e.user.${Date.now()}@TestDomain.com`;
+    const regRes = await fetch(`${BASE_URL}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "E2E Registered User",
+        email: `  ${uniqueEmail}  `,
+        password: "securePass123",
+        role: "interviewer",
+      }),
+    });
+    assert(regRes.status === 201, `Register failed: ${regRes.status}`);
+    const regData = await regRes.json();
+    assert(Boolean(regData.user?.id), "No user ID returned on register");
+
+    const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: uniqueEmail.toLowerCase(),
+        password: "securePass123",
+      }),
+    });
+    assert(loginRes.status === 200, `Immediate login failed: ${loginRes.status}`);
+    const loginData = await loginRes.json();
+    assert(loginData.user?.id === regData.user.id, "Login user ID mismatch");
+    return `Registered & logged in user ${loginData.user.id} (${loginData.user.role})`;
+  });
+
   const failed = results.filter((r) => !r.passed).length;
   console.log(`\nSummary: ${results.length - failed}/${results.length} passed`);
   process.exit(failed === 0 ? 0 : 1);

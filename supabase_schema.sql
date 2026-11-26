@@ -179,11 +179,45 @@ CREATE POLICY "Users read own profile"
   TO authenticated
   USING ((select auth.uid()) = id);
 
+CREATE POLICY "Users insert own profile"
+  ON public.users FOR INSERT
+  TO authenticated
+  WITH CHECK ((select auth.uid()) = id);
+
 CREATE POLICY "Users update own profile"
   ON public.users FOR UPDATE
   TO authenticated
   USING ((select auth.uid()) = id)
   WITH CHECK ((select auth.uid()) = id);
+
+-- Automatically sync auth.users -> public.users on every Supabase sign-up
+CREATE OR REPLACE FUNCTION public.handle_new_auth_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.users (id, email, name, role, status)
+  VALUES (
+    NEW.id,
+    LOWER(TRIM(NEW.email)),
+    COALESCE(NEW.raw_user_meta_data ->> 'full_name', split_part(NEW.email, '@', 1)),
+    CASE
+      WHEN NEW.raw_user_meta_data ->> 'requested_role' = 'interviewer' THEN 'interviewer'
+      ELSE 'candidate'
+    END,
+    'active'
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_auth_user();
 
 CREATE POLICY "Candidates manage own profile"
   ON public.candidate_profiles FOR ALL

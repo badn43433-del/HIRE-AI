@@ -16,7 +16,7 @@ import { isSupabaseConnected, signInWithSupabase, signUpWithSupabase } from "../
 import { detectBrowserExtensions, ExtensionDetectionResult } from "../../utils/extensionDetector";
 
 interface AuthPortalProps {
-  onLoginSuccess: (name: string, email: string, role: UserRole) => void;
+  onLoginSuccess: (name: string, email: string, role: UserRole, userId?: string) => void;
 }
 
 export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
@@ -164,21 +164,42 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
 
     if (isSupabaseConnected() && !isDemoAccount) {
       setIsSubmitting(true);
-      const { session, user, error } = await signInWithSupabase(email.trim(), password);
+      const { session, user, profile, error } = await signInWithSupabase(email, password, selectedRole);
       setIsSubmitting(false);
       if (error || !session || !user) {
         setErrorText(error || "Invalid email or password.");
         return;
       }
-      const roleFromMeta = user.app_metadata?.role;
-      const resolvedRole: UserRole =
-        roleFromMeta === "candidate" || roleFromMeta === "interviewer" ? roleFromMeta : selectedRole;
       onLoginSuccess(
-        user.user_metadata?.full_name || name || email.split("@")[0],
-        user.email || email,
-        resolvedRole
+        profile?.name || user.user_metadata?.full_name || name || email.split("@")[0],
+        profile?.email || user.email || email.trim().toLowerCase(),
+        profile?.role || selectedRole,
+        profile?.id || user.id
       );
       return;
+    }
+
+    if (!isDemoAccount) {
+      setIsSubmitting(true);
+      try {
+        const loginRes = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+        });
+        const loginData = await loginRes.json();
+        setIsSubmitting(false);
+        if (!loginRes.ok) {
+          setErrorText(loginData?.error || "Invalid email or password.");
+          return;
+        }
+        handleSendOtp(loginData.user.email, loginData.user.role, loginData.user.name);
+        return;
+      } catch {
+        setIsSubmitting(false);
+        setErrorText("Unable to reach authentication server.");
+        return;
+      }
     }
 
     handleSendOtp(email, selectedRole, name);
@@ -218,10 +239,10 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
 
     if (isSupabaseConnected() && !isDemoAccount) {
       setIsSubmitting(true);
-      const { session, user, error, needsEmailConfirmation } = await signUpWithSupabase(
-        email.trim(),
+      const { session, user, profile, error, needsEmailConfirmation } = await signUpWithSupabase(
+        email,
         password,
-        name.trim(),
+        name,
         selectedRole
       );
       setIsSubmitting(false);
@@ -235,8 +256,38 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
         return;
       }
       if (session && user) {
-        onLoginSuccess(name.trim(), user.email || email.trim(), selectedRole);
+        onLoginSuccess(
+          profile?.name || name.trim(),
+          profile?.email || user.email || email.trim().toLowerCase(),
+          profile?.role || selectedRole,
+          profile?.id || user.id
+        );
       }
+      return;
+    }
+
+    // Local Express mode: persist user record + userId before OTP
+    setIsSubmitting(true);
+    try {
+      const regRes = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          password,
+          role: selectedRole,
+        }),
+      });
+      const regData = await regRes.json();
+      setIsSubmitting(false);
+      if (!regRes.ok) {
+        setErrorText(regData?.error || "Failed to create account.");
+        return;
+      }
+    } catch {
+      setIsSubmitting(false);
+      setErrorText("Unable to reach authentication server.");
       return;
     }
 
@@ -293,7 +344,7 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
       setIsSubmitting(false);
 
       if (data.success && data.verified) {
-        onLoginSuccess(data.name || name, data.email || email, (data.role || selectedRole) as UserRole);
+        onLoginSuccess(data.name || name, data.email || email, (data.role || selectedRole) as UserRole, data.userId);
       } else {
         setErrorText(data.error || "Invalid verification code.");
       }

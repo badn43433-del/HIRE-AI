@@ -4,6 +4,7 @@
  */
 
 import express from "express";
+import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -58,20 +59,50 @@ app.use((err: any, _req: express.Request, res: express.Response, next: express.N
 const DB_FILE = path.join(process.cwd(), "server_db.json");
 
 // Helper: load database safe
+interface UserRecord {
+  id: string;
+  name: string;
+  email: string;
+  role: "candidate" | "interviewer";
+  passwordHash: string;
+  createdAt: string;
+}
+
 interface DBData {
+  users: UserRecord[];
   sessions: any[];
   reports: any[];
 }
+
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password: string, storedHash: string): boolean {
+  const [salt, keyHex] = (storedHash || "").split(":");
+  if (!salt || !keyHex) return false;
+  const derived = crypto.scryptSync(password, salt, 64);
+  const keyBuf = Buffer.from(keyHex, "hex");
+  return derived.length === keyBuf.length && crypto.timingSafeEqual(derived, keyBuf);
+}
+
 function loadDB(): DBData {
   try {
     if (fs.existsSync(DB_FILE)) {
       const content = fs.readFileSync(DB_FILE, "utf-8");
-      return JSON.parse(content);
+      const parsed = JSON.parse(content);
+      return {
+        users: Array.isArray(parsed.users) ? parsed.users : [],
+        sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
+        reports: Array.isArray(parsed.reports) ? parsed.reports : [],
+      };
     }
   } catch (error) {
     console.error("Error reading database file", error);
   }
-  return { sessions: [], reports: [] };
+  return { users: [], sessions: [], reports: [] };
 }
 
 function saveDB(data: DBData) {
@@ -663,6 +694,82 @@ app.post("/api/auth/send-otp", async (req, res) => {
   });
 });
 
+// Endpoint: Register a new local user account (persisted in server_db.json)
+app.post("/api/auth/register", (req, res) => {
+  const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
+  const cleanEmail = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+  const password = typeof req.body?.password === "string" ? req.body.password : "";
+  const role: "candidate" | "interviewer" = req.body?.role === "interviewer" ? "interviewer" : "candidate";
+
+  if (!name || !cleanEmail || !cleanEmail.includes("@")) {
+    return res.status(400).json({ error: "Valid name and email address are required." });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: "Password must be at least 6 characters long." });
+  }
+
+  const db = loadDB();
+  const existing = db.users.find((u) => u.email.trim().toLowerCase() === cleanEmail);
+  if (existing) {
+    return res.status(409).json({ error: "An account with this email already exists. Please sign in." });
+  }
+
+  const newUser: UserRecord = {
+    id: `usr-${crypto.randomUUID().slice(0, 8)}`,
+    name,
+    email: cleanEmail,
+    role,
+    passwordHash: hashPassword(password),
+    createdAt: new Date().toISOString(),
+  };
+
+  db.users.push(newUser);
+  saveDB(db);
+  console.log(`[AUTH REGISTER] Persisted user ${newUser.id} (${cleanEmail}, role=${role})`);
+
+  res.status(201).json({
+    success: true,
+    user: {
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+    },
+  });
+});
+
+// Endpoint: Login with email + password against persisted local users
+app.post("/api/auth/login", (req, res) => {
+  const cleanEmail = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+  const password = typeof req.body?.password === "string" ? req.body.password : "";
+
+  if (!cleanEmail || !password) {
+    return res.status(400).json({ error: "Email and password are required." });
+  }
+
+  const db = loadDB();
+  const user = db.users.find((u) => u.email.trim().toLowerCase() === cleanEmail);
+
+  if (!user) {
+    console.warn(`[AUTH LOGIN] No user ID found for email: ${cleanEmail}`);
+    return res.status(404).json({ error: "No account found for this email. Please sign up first." });
+  }
+
+  if (!verifyPassword(password, user.passwordHash)) {
+    return res.status(401).json({ error: "Invalid email or password." });
+  }
+
+  res.json({
+    success: true,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+  });
+});
+
 // Endpoint: Verify 2FA OTP
 app.post("/api/auth/verify-otp", (req, res) => {
   const { email, otp_code, role } = req.body;
@@ -681,13 +788,33 @@ app.post("/api/auth/verify-otp", (req, res) => {
     });
   }
 
-  // Successfully verified!
-  const resolvedRole = role || stored?.role || "candidate";
-  const resolvedName = stored?.name || cleanEmail.split("@")[0].replace(".", " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
+  // Resolve persisted user ID from DB (or create if demo/OTP-only login)
+  const db = loadDB();
+  let user = db.users.find((u) => u.email.trim().toLowerCase() === cleanEmail);
+  const resolvedRole: "candidate" | "interviewer" =
+    (role === "interviewer" || stored?.role === "interviewer") ? "interviewer" : (user?.role || "candidate");
+  const resolvedName =
+    user?.name ||
+    stored?.name ||
+    cleanEmail.split("@")[0].replace(".", " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
+
+  if (!user) {
+    user = {
+      id: `usr-${crypto.randomUUID().slice(0, 8)}`,
+      name: resolvedName,
+      email: cleanEmail,
+      role: resolvedRole,
+      passwordHash: "",
+      createdAt: new Date().toISOString(),
+    };
+    db.users.push(user);
+    saveDB(db);
+  }
 
   res.json({
     success: true,
     verified: true,
+    userId: user.id,
     email: cleanEmail,
     name: resolvedName,
     role: resolvedRole,

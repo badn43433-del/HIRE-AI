@@ -11,13 +11,14 @@ import { UserRole } from "../types";
 interface AuthContextValue {
   session: Session | null;
   user: User | null;
+  userId: string;
   isAuthenticated: boolean;
   isLoading: boolean;
   isSupabaseAuth: boolean;
   userRole: UserRole;
   userName: string;
   userEmail: string;
-  loginSession: (name: string, email: string, role: UserRole) => void;
+  loginSession: (name: string, email: string, role: UserRole, id?: string) => void;
   logout: () => Promise<void>;
   switchRole: (role: UserRole) => void;
 }
@@ -53,6 +54,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [userEmail, setUserEmail] = useState<string>(() => {
     return localStorage.getItem("hireshield_user_email") || "sarah.jenkins@enterprise-recruit.com";
+  });
+
+  const [userId, setUserId] = useState<string>(() => {
+    return localStorage.getItem("hireshield_user_id") || "";
   });
 
   useEffect(() => {
@@ -93,25 +98,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const loginSession = (name: string, email: string, role: UserRole) => {
+  const loginSession = (name: string, email: string, role: UserRole, id?: string) => {
+    const resolvedId = id || session?.user?.id || `usr-${email.trim().toLowerCase()}`;
     localStorage.setItem("hireshield_is_logged_in", "true");
+    localStorage.setItem("hireshield_user_id", resolvedId);
     localStorage.setItem("hireshield_user_name", name);
-    localStorage.setItem("hireshield_user_email", email);
+    localStorage.setItem("hireshield_user_email", email.trim().toLowerCase());
     localStorage.setItem("hireshield_role", role);
 
     setLocalLoggedIn(true);
+    setUserId(resolvedId);
     setUserName(name);
-    setUserEmail(email);
+    setUserEmail(email.trim().toLowerCase());
     setUserRole(role);
   };
 
   const logout = async () => {
     await signOutSupabase();
     localStorage.removeItem("hireshield_is_logged_in");
+    localStorage.removeItem("hireshield_user_id");
     localStorage.removeItem("hireshield_user_name");
     localStorage.removeItem("hireshield_user_email");
     localStorage.removeItem("hireshield_role");
     setSession(null);
+    setUserId("");
     setLocalLoggedIn(false);
   };
 
@@ -134,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         session,
         user: session?.user ?? null,
+        userId: session?.user?.id || userId,
         isAuthenticated,
         isLoading,
         isSupabaseAuth: Boolean(session?.user),

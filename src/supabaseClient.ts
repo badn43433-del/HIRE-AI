@@ -40,15 +40,97 @@ export const isSupabaseConnected = (): boolean => {
 
 // --- Supabase Auth Helpers ---
 
-export async function signInWithSupabase(email: string, password: string): Promise<{ session: Session | null; user: User | null; error: string | null }> {
+async function ensureSupabaseUserProfile(
+  user: User,
+  fallbackName: string,
+  fallbackRole: UserRole
+): Promise<{ id: string; name: string; email: string; role: UserRole }> {
+  const cleanEmail = (user.email || "").trim().toLowerCase();
+  const resolvedName =
+    (user.user_metadata?.full_name as string) || fallbackName || cleanEmail.split("@")[0] || "User";
+  const appRole = user.app_metadata?.role;
+  const metaRole = user.user_metadata?.requested_role;
+  const resolvedRole: UserRole =
+    appRole === "candidate" || appRole === "interviewer"
+      ? appRole
+      : metaRole === "candidate" || metaRole === "interviewer"
+      ? metaRole
+      : fallbackRole;
+
   if (!supabaseClient) {
-    return { session: null, user: null, error: "Supabase is not configured." };
+    return { id: user.id, name: resolvedName, email: cleanEmail, role: resolvedRole };
   }
-  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+  // Look up existing profile by auth UUID first
+  const { data: existing, error: selectErr } = await supabaseClient
+    .from("users")
+    .select("id, name, email, role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (selectErr) {
+    console.warn("Supabase public.users lookup warning:", selectErr.message);
+  }
+
+  if (existing) {
+    const dbRole: UserRole = existing.role === "interviewer" ? "interviewer" : "candidate";
+    return {
+      id: existing.id,
+      name: existing.name || resolvedName,
+      email: existing.email || cleanEmail,
+      role: dbRole,
+    };
+  }
+
+  // Persist missing public.users row using authenticated user's UUID
+  const { error: upsertErr } = await supabaseClient
+    .from("users")
+    .upsert(
+      [
+        {
+          id: user.id,
+          email: cleanEmail,
+          name: resolvedName,
+          role: resolvedRole,
+          status: "active",
+        },
+      ],
+      { onConflict: "id" }
+    );
+
+  if (upsertErr) {
+    console.warn("Supabase public.users sync warning:", upsertErr.message);
+  }
+
+  return { id: user.id, name: resolvedName, email: cleanEmail, role: resolvedRole };
+}
+
+export async function signInWithSupabase(
+  email: string,
+  password: string,
+  fallbackRole: UserRole = "candidate"
+): Promise<{
+  session: Session | null;
+  user: User | null;
+  profile: { id: string; name: string; email: string; role: UserRole } | null;
+  error: string | null;
+}> {
+  if (!supabaseClient) {
+    return { session: null, user: null, profile: null, error: "Supabase is not configured." };
+  }
+  const cleanEmail = email.trim().toLowerCase();
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email: cleanEmail, password });
   if (error) {
-    return { session: null, user: null, error: error.message };
+    const msg = error.message.toLowerCase().includes("email not confirmed")
+      ? "Email not confirmed yet. Check your inbox or disable Confirm Email in Supabase Auth settings."
+      : error.message;
+    return { session: null, user: null, profile: null, error: msg };
   }
-  return { session: data.session, user: data.user, error: null };
+  if (!data.user || !data.session) {
+    return { session: null, user: null, profile: null, error: "No user ID returned from Supabase Auth." };
+  }
+  const profile = await ensureSupabaseUserProfile(data.user, cleanEmail.split("@")[0], fallbackRole);
+  return { session: data.session, user: data.user, profile, error: null };
 }
 
 export async function signUpWithSupabase(
@@ -56,23 +138,39 @@ export async function signUpWithSupabase(
   password: string,
   name: string,
   role: UserRole
-): Promise<{ session: Session | null; user: User | null; error: string | null; needsEmailConfirmation: boolean }> {
+): Promise<{
+  session: Session | null;
+  user: User | null;
+  profile: { id: string; name: string; email: string; role: UserRole } | null;
+  error: string | null;
+  needsEmailConfirmation: boolean;
+}> {
   if (!supabaseClient) {
-    return { session: null, user: null, error: "Supabase is not configured.", needsEmailConfirmation: false };
+    return { session: null, user: null, profile: null, error: "Supabase is not configured.", needsEmailConfirmation: false };
   }
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanName = name.trim();
   const { data, error } = await supabaseClient.auth.signUp({
-    email,
+    email: cleanEmail,
     password,
     options: {
-      data: { full_name: name, requested_role: role },
+      data: { full_name: cleanName, requested_role: role },
     },
   });
   if (error) {
-    return { session: null, user: null, error: error.message, needsEmailConfirmation: false };
+    return { session: null, user: null, profile: null, error: error.message, needsEmailConfirmation: false };
+  }
+  if (!data.user) {
+    return { session: null, user: null, profile: null, error: "Account creation failed: no user ID returned.", needsEmailConfirmation: false };
+  }
+  let profile: { id: string; name: string; email: string; role: UserRole } | null = null;
+  if (data.session) {
+    profile = await ensureSupabaseUserProfile(data.user, cleanName, role);
   }
   return {
     session: data.session,
     user: data.user,
+    profile,
     error: null,
     needsEmailConfirmation: !data.session,
   };

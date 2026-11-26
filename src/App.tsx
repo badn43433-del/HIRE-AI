@@ -59,8 +59,8 @@ export default function App() {
     loadReports();
   }, []);
 
-  const handleLoginSuccess = (name: string, email: string, role: UserRole) => {
-    loginSession(name, email, role);
+  const handleLoginSuccess = (name: string, email: string, role: UserRole, userId?: string) => {
+    loginSession(name, email, role, userId);
     const fromPath = (location.state as any)?.from?.pathname;
     navigate(fromPath && fromPath !== "/login" ? fromPath : `/${role}`, { replace: true });
   };

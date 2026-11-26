@@ -126,12 +126,24 @@ export async function checkBackendConnectivity(timeoutMs = 5000): Promise<{
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(`${diag.baseUrl}/api/positions`, {
+    const res = await fetch(`${diag.baseUrl}/api/health`, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        "bypass-tunnel-reminder": "true",
+        "ngrok-skip-browser-warning": "true",
+      },
       signal: controller.signal,
     });
     if (!res.ok) {
+      if (res.status === 503) {
+        return {
+          ok: false,
+          baseUrl: diag.baseUrl,
+          message:
+            "Tunnel returned HTTP 503: either server.ts is not running on port 3000, or this temporary tunnel URL has expired — restart your backend tunnel and update EXPO_PUBLIC_API_URL in .env.local.",
+        };
+      }
       return {
         ok: false,
         baseUrl: diag.baseUrl,
@@ -173,6 +185,8 @@ export async function apiRequest<T>(
   const defaultHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: "application/json",
+    "bypass-tunnel-reminder": "true",
+    "ngrok-skip-browser-warning": "true",
   };
 
   let response: Response;

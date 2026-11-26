@@ -41,6 +41,8 @@ app.use((req, res, next) => {
       origin.endsWith(".ngrok.app") ||
       origin.endsWith(".ngrok.io") ||
       origin.endsWith(".trycloudflare.com") ||
+      origin.endsWith(".lhr.life") ||
+      origin.endsWith(".loca.lt") ||
       origin.endsWith(".run.app"))
   ) {
     res.setHeader("Access-Control-Allow-Origin", origin);
@@ -49,7 +51,10 @@ app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
   }
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, bypass-tunnel-reminder, ngrok-skip-browser-warning"
+  );
   if (req.method === "OPTIONS") {
     return res.sendStatus(204);
   }
@@ -831,6 +836,11 @@ app.post("/api/auth/verify-otp", (req, res) => {
     role: resolvedRole,
     token: `jwt_token_${Math.random().toString(36).substring(2)}_${Date.now()}`
   });
+});
+
+// API: Fast Health Check
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true, service: "HireShield AI", timestamp: new Date().toISOString() });
 });
 
 // API: Positions

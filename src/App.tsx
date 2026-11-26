@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
-import { ShieldCheck, FileText, LogOut } from "lucide-react";
+import { ShieldCheck, FileText, LogOut, ShieldAlert, RefreshCw } from "lucide-react";
 
 import AuthPortal from "./components/auth/AuthPortal";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -18,6 +18,7 @@ import AIChatAssistant from "./components/common/AIChatAssistant";
 import { useAuth } from "./context/AuthContext";
 import { UserRole, AIEvaluationReport } from "./types";
 import { fetchReports } from "./supabaseClient";
+import { detectBrowserExtensions, ExtensionDetectionResult } from "./utils/extensionDetector";
 
 export default function App() {
   const {
@@ -35,6 +36,14 @@ export default function App() {
   const location = useLocation();
 
   const [reports, setReports] = useState<AIEvaluationReport[]>([]);
+  const [extensionLock, setExtensionLock] = useState<ExtensionDetectionResult>(() => detectBrowserExtensions());
+
+  useEffect(() => {
+    const check = () => setExtensionLock(detectBrowserExtensions());
+    check();
+    const timer = setInterval(check, 3000);
+    return () => clearInterval(timer);
+  }, []);
 
   const loadReports = () => {
     fetchReports()
@@ -72,6 +81,46 @@ export default function App() {
         <Route path="/login" element={<AuthPortal onLoginSuccess={handleLoginSuccess} />} />
         <Route path="*" element={<Navigate to="/login" state={{ from: location }} replace />} />
       </Routes>
+    );
+  }
+
+  if (extensionLock.detected) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-slate-900 border border-rose-500/60 rounded-3xl p-7 shadow-2xl space-y-5 text-center">
+          <div className="h-14 w-14 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center mx-auto">
+            <ShieldAlert className="h-7 w-7 text-rose-400" />
+          </div>
+          <div className="space-y-1.5">
+            <h2 className="text-lg font-heading font-extrabold text-rose-300">
+              Browser Extension Detected
+            </h2>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              HireShield AI requires a clean browser environment. Disable all browser extensions (or use Incognito with extensions disabled) to continue.
+            </p>
+          </div>
+          <ul className="text-left bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-[11px] font-mono text-rose-300 space-y-1">
+            {extensionLock.findings.map((f, idx) => (
+              <li key={idx}>• {f.name}: {f.reason}</li>
+            ))}
+          </ul>
+          <div className="flex gap-2.5">
+            <button
+              onClick={() => setExtensionLock(detectBrowserExtensions())}
+              className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              <span>Re-scan Browser</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="py-2.5 px-4 rounded-xl border border-rose-700 hover:bg-rose-950 text-rose-300 font-bold text-xs cursor-pointer"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 

@@ -13,6 +13,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { UserRole } from "../../types";
 import { isSupabaseConnected, signInWithSupabase, signUpWithSupabase } from "../../supabaseClient";
+import { detectBrowserExtensions, ExtensionDetectionResult } from "../../utils/extensionDetector";
 
 interface AuthPortalProps {
   onLoginSuccess: (name: string, email: string, role: UserRole) => void;
@@ -47,6 +48,27 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
   const [successText, setSuccessText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [extensionCheck, setExtensionCheck] = useState<ExtensionDetectionResult>(() => detectBrowserExtensions());
+
+  const runExtensionScan = () => {
+    const result = detectBrowserExtensions();
+    setExtensionCheck(result);
+    return result;
+  };
+
+  useEffect(() => {
+    runExtensionScan();
+    const interval = setInterval(runExtensionScan, 2500);
+    const observer = new MutationObserver(() => {
+      const res = detectBrowserExtensions();
+      if (res.detected) setExtensionCheck(res);
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
+    return () => {
+      clearInterval(interval);
+      observer.disconnect();
+    };
+  }, []);
 
   // Check initial SMTP status on mount
   useEffect(() => {
@@ -120,6 +142,12 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
     e.preventDefault();
     setErrorText("");
 
+    const ext = runExtensionScan();
+    if (ext.detected) {
+      setErrorText("Login blocked: Disable all browser extensions and click Re-scan Browser to continue.");
+      return;
+    }
+
     if (!email || !email.includes("@")) {
       setErrorText("Please enter a valid business email address.");
       return;
@@ -154,6 +182,12 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorText("");
+
+    const ext = runExtensionScan();
+    if (ext.detected) {
+      setErrorText("Registration blocked: Disable all browser extensions before creating an account.");
+      return;
+    }
 
     if (!name.trim()) {
       setErrorText("Please state your full name.");
@@ -224,6 +258,11 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const ext = runExtensionScan();
+    if (ext.detected) {
+      setErrorText("Verification blocked: Browser extension detected. Disable extensions to proceed.");
+      return;
+    }
     const fullOtp = otpCode.join("");
     const codeToVerify = fullOtp.length === 6 ? fullOtp : serverOtp || "849201";
 
@@ -382,6 +421,39 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
           </div>
         )}
 
+        {/* Browser Extension Blocker Banner */}
+        {extensionCheck.detected && (
+          <div
+            id="extension-blocker-banner"
+            className="p-3.5 rounded-2xl bg-rose-950/70 border border-rose-500/60 text-rose-200 text-xs space-y-2 shadow-lg"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 font-bold text-rose-300">
+                <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
+                <span>Browser Extension Detected — Login Blocked</span>
+              </div>
+              <button
+                type="button"
+                onClick={runExtensionScan}
+                className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-bold cursor-pointer shrink-0 flex items-center gap-1"
+              >
+                <RefreshCw className="h-3 w-3" />
+                <span>Re-scan</span>
+              </button>
+            </div>
+            <p className="text-[11px] text-rose-200/90 leading-relaxed">
+              Disable all browser extensions (or open an Incognito/Private window without extensions) to sign in:
+            </p>
+            <ul className="list-disc list-inside text-[10px] font-mono text-rose-300 space-y-0.5">
+              {extensionCheck.findings.map((f, idx) => (
+                <li key={idx}>
+                  {f.name}: {f.reason}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Feedback Alerts */}
         <AnimatePresence>
           {errorText && (
@@ -476,8 +548,8 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
             <button
               id="auth-login-submit-btn"
               type="submit"
-              disabled={isSubmitting}
-              className="w-full py-3 bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-500 hover:from-indigo-500 hover:to-sky-400 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              disabled={isSubmitting || extensionCheck.detected}
+              className="w-full py-3 bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-500 hover:from-indigo-500 hover:to-sky-400 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>

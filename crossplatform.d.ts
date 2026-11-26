@@ -39,6 +39,10 @@ declare module "react-native" {
     OS: "web" | "ios" | "android" | "windows" | "macos";
     select: <T>(specifics: { [platform: string]: T }) => T;
   };
+  export const AppState: {
+    currentState: string;
+    addEventListener: (event: string, handler: (state: string) => void) => { remove: () => void };
+  };
 }
 
 declare module "@react-native-async-storage/async-storage" {

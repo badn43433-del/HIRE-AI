@@ -843,6 +843,206 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "HireShield AI", timestamp: new Date().toISOString() });
 });
 
+// API: Real-Time AI Vision Proctoring Frame Analysis
+app.post("/api/proctor/analyze-frame", async (req, res) => {
+  const { imageBase64, sessionId, elapsedSeconds, simulatedSignals } = req.body as {
+    imageBase64?: string;
+    sessionId?: string;
+    elapsedSeconds?: number;
+    simulatedSignals?: {
+      personCount?: number;
+      multiplePeopleDetected?: boolean;
+      phoneDetected?: boolean;
+      lookingAway?: boolean;
+      gazeDirection?: "center" | "left" | "right" | "up" | "down";
+      confidence?: number;
+      reason?: string;
+    };
+  };
+
+  if (!imageBase64 && !simulatedSignals) {
+    return res.status(400).json({ error: "imageBase64 or simulatedSignals is required." });
+  }
+
+  let personCount = 1;
+  let multiplePeopleDetected = false;
+  let phoneDetected = false;
+  let lookingAway = false;
+  let gazeDirection: "center" | "left" | "right" | "up" | "down" = "center";
+  let confidence = 0.95;
+  let reason = "Single candidate centered and focused on screen.";
+  let provider: "gemini-vision" | "simulated" | "local-fallback" = "local-fallback";
+
+  if (simulatedSignals) {
+    provider = "simulated";
+    personCount = typeof simulatedSignals.personCount === "number" ? simulatedSignals.personCount : (simulatedSignals.multiplePeopleDetected ? 2 : 1);
+    multiplePeopleDetected = Boolean(simulatedSignals.multiplePeopleDetected) || personCount > 1;
+    phoneDetected = Boolean(simulatedSignals.phoneDetected);
+    lookingAway = Boolean(simulatedSignals.lookingAway);
+    gazeDirection = simulatedSignals.gazeDirection || (lookingAway ? "right" : "center");
+    confidence = typeof simulatedSignals.confidence === "number" ? simulatedSignals.confidence : 0.94;
+    reason = simulatedSignals.reason || "Proctoring telemetry evaluated.";
+  } else if (process.env.GEMINI_API_KEY && imageBase64) {
+    try {
+      const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`;
+      const geminiRes = await fetch(geminiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text:
+                    "Analyze this live interview webcam frame for proctoring integrity. " +
+                    "Count all visible people/faces (personCount). " +
+                    "Detect if any smartphone, mobile phone, tablet, or secondary handheld screen is visible (phoneDetected). " +
+                    "Detect if the candidate is looking away from the screen or turning their head left/right/up/down (lookingAway + gazeDirection). " +
+                    "Provide confidence (0-1) and a short reason."
+                },
+                {
+                  inlineData: {
+                    mimeType: "image/jpeg",
+                    data: cleanBase64,
+                  },
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.1,
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                personCount: { type: "INTEGER" },
+                multiplePeopleDetected: { type: "BOOLEAN" },
+                phoneDetected: { type: "BOOLEAN" },
+                lookingAway: { type: "BOOLEAN" },
+                gazeDirection: { type: "STRING", enum: ["center", "left", "right", "up", "down"] },
+                confidence: { type: "NUMBER" },
+                reason: { type: "STRING" },
+              },
+              required: ["personCount", "multiplePeopleDetected", "phoneDetected", "lookingAway", "gazeDirection", "confidence", "reason"],
+            },
+          },
+        }),
+      });
+
+      if (geminiRes.ok) {
+        const gData: any = await geminiRes.json();
+        const rawText = gData?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (rawText) {
+          const parsed = JSON.parse(rawText);
+          provider = "gemini-vision";
+          personCount = typeof parsed.personCount === "number" ? parsed.personCount : 1;
+          multiplePeopleDetected = Boolean(parsed.multiplePeopleDetected) || personCount > 1;
+          phoneDetected = Boolean(parsed.phoneDetected);
+          lookingAway = Boolean(parsed.lookingAway);
+          gazeDirection = ["center", "left", "right", "up", "down"].includes(parsed.gazeDirection)
+            ? parsed.gazeDirection
+            : "center";
+          confidence = typeof parsed.confidence === "number" ? Math.min(1, Math.max(0, parsed.confidence)) : 0.9;
+          reason = typeof parsed.reason === "string" && parsed.reason.trim() ? parsed.reason.trim() : reason;
+        }
+      } else {
+        console.warn("Gemini Vision proctoring returned status:", geminiRes.status);
+      }
+    } catch (err: any) {
+      console.warn("Gemini Vision frame analysis fallback:", err?.message || err);
+    }
+  }
+
+  const violations: {
+    code: "PHONE_DETECTED" | "LOOKING_AWAY" | "MULTIPLE_PEOPLE" | "NO_FACE";
+    type: "mobile_phone" | "reading_behavior" | "multiple_faces" | "no_face";
+    severity: "low" | "medium" | "high";
+    description: string;
+    penalty: number;
+  }[] = [];
+
+  if (phoneDetected) {
+    violations.push({
+      code: "PHONE_DETECTED",
+      type: "mobile_phone",
+      severity: "high",
+      description: reason || "Mobile phone or unauthorized electronic device detected in camera frame.",
+      penalty: 18,
+    });
+  }
+
+  if (multiplePeopleDetected || personCount > 1) {
+    violations.push({
+      code: "MULTIPLE_PEOPLE",
+      type: "multiple_faces",
+      severity: "high",
+      description: `Multiple people detected in camera frame (personCount=${personCount}).`,
+      penalty: 20,
+    });
+  }
+
+  if (personCount === 0) {
+    violations.push({
+      code: "NO_FACE",
+      type: "no_face",
+      severity: "medium",
+      description: "Candidate face not visible in camera frame.",
+      penalty: 10,
+    });
+  } else if (lookingAway) {
+    violations.push({
+      code: "LOOKING_AWAY",
+      type: "reading_behavior",
+      severity: "medium",
+      description: `Candidate looking away from screen (gazeDirection=${gazeDirection}).`,
+      penalty: 10,
+    });
+  }
+
+  const trustScoreDelta = violations.reduce((sum, v) => sum + v.penalty, 0);
+  let updatedTrustScore: number | undefined;
+
+  if (sessionId && violations.length > 0) {
+    const db = loadDB();
+    const sIdx = db.sessions.findIndex((s) => s.id === sessionId);
+    if (sIdx !== -1) {
+      const ses = db.sessions[sIdx];
+      if (!Array.isArray(ses.suspiciousActivities)) ses.suspiciousActivities = [];
+      const currentTrust = typeof ses.trustScore === "number" ? ses.trustScore : 100;
+      updatedTrustScore = Math.max(10, currentTrust - trustScoreDelta);
+      ses.trustScore = updatedTrustScore;
+
+      for (const v of violations) {
+        ses.suspiciousActivities.push({
+          id: `evt-${Math.random().toString(36).substring(2, 8)}`,
+          type: v.type,
+          code: v.code,
+          timestamp: new Date().toISOString(),
+          description: v.description,
+          severity: v.severity,
+          videoOffsetSeconds: typeof elapsedSeconds === "number" ? elapsedSeconds : 0,
+        });
+      }
+      saveDB(db);
+    }
+  }
+
+  res.json({
+    provider,
+    personCount,
+    multiplePeopleDetected: multiplePeopleDetected || personCount > 1,
+    phoneDetected,
+    lookingAway,
+    gazeDirection,
+    confidence,
+    reason,
+    violations: violations.map(({ penalty: _p, ...rest }) => rest),
+    trustScoreDelta,
+    updatedTrustScore,
+  });
+});
+
 // API: Positions
 app.get("/api/positions", (req, res) => {
   res.json(INITIAL_POSITIONS);

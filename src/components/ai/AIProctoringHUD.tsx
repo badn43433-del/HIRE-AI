@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   ShieldAlert, ShieldCheck, Eye, Users, AlertTriangle, 
   Volume2, Sparkles, BrainCircuit, Activity, Smartphone,
@@ -14,6 +14,9 @@ import { AIProctoringMetrics, SuspiciousActivity } from "../../types";
 
 interface AIProctoringHUDProps {
   streamActive: boolean;
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
+  sessionId?: string;
+  elapsedSeconds?: number;
   onMalpracticeAlert?: (alert: SuspiciousActivity) => void;
   trustScore: number;
   onTrustScoreChange?: (score: number) => void;
@@ -21,6 +24,9 @@ interface AIProctoringHUDProps {
 
 export default function AIProctoringHUD({
   streamActive,
+  videoRef,
+  sessionId,
+  elapsedSeconds = 0,
   onMalpracticeAlert,
   trustScore = 96,
   onTrustScoreChange
@@ -44,6 +50,11 @@ export default function AIProctoringHUD({
   });
 
   const [activeAlert, setActiveAlert] = useState<string | null>(null);
+  const lookingAwaySinceRef = useRef<number | null>(null);
+  const cooldownMapRef = useRef<Record<string, number>>({});
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const trustScoreRef = useRef<number>(trustScore);
+  trustScoreRef.current = trustScore;
 
   // Monitor window blur & tab-switching
   useEffect(() => {
@@ -96,29 +107,167 @@ export default function AIProctoringHUD({
     };
   }, [trustScore, onMalpracticeAlert, onTrustScoreChange]);
 
-  // Periodic micro-telemetry fluctuations to simulate MediaPipe/OpenCV inference
+  // Real-time 2.5s camera frame sampling & AI Vision Proctoring analysis
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Natural gaze & emotion drift
-      const gazes: ("Center" | "Looking Left" | "Looking Right" | "Looking Away")[] = [
-        "Center", "Center", "Center", "Center", "Looking Left", "Looking Right"
-      ];
-      const emotions: ("Confident" | "Focused" | "Neutral" | "Stressed")[] = [
-        "Focused", "Confident", "Focused", "Neutral"
-      ];
-      const randomGaze = gazes[Math.floor(Math.random() * gazes.length)];
-      const randomEmotion = emotions[Math.floor(Math.random() * emotions.length)];
+    if (!streamActive) return;
 
-      setMetrics(prev => ({
-        ...prev,
-        eyeGaze: randomGaze,
-        emotion: randomEmotion,
-        backgroundNoiseDecibels: Math.floor(22 + Math.random() * 14)
-      }));
-    }, 4500);
+    let cancelled = false;
 
-    return () => clearInterval(interval);
-  }, []);
+    const mapGazeLabel = (dir: string, away: boolean): AIProctoringMetrics["eyeGaze"] => {
+      if (!away || dir === "center") return "Center";
+      if (dir === "left") return "Looking Left";
+      if (dir === "right") return "Looking Right";
+      return "Looking Away";
+    };
+
+    const canEmit = (code: string, cooldownMs = 6000): boolean => {
+      const now = Date.now();
+      const last = cooldownMapRef.current[code] || 0;
+      if (now - last < cooldownMs) return false;
+      cooldownMapRef.current[code] = now;
+      return true;
+    };
+
+    const analyzeCurrentFrame = async () => {
+      const video = videoRef?.current;
+      if (!video || video.readyState < 2 || video.videoWidth === 0) {
+        return;
+      }
+
+      if (!canvasRef.current) {
+        canvasRef.current = document.createElement("canvas");
+      }
+      const canvas = canvasRef.current;
+      canvas.width = 320;
+      canvas.height = 240;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageBase64 = canvas.toDataURL("image/jpeg", 0.6);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+      try {
+        const res = await fetch("/api/proctor/analyze-frame", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            imageBase64,
+            sessionId,
+            elapsedSeconds,
+          }),
+        });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (cancelled) return;
+
+        const now = Date.now();
+        let prolongedLookingAway = false;
+        if (data.lookingAway) {
+          if (!lookingAwaySinceRef.current) {
+            lookingAwaySinceRef.current = now;
+          } else if (now - lookingAwaySinceRef.current >= 2500) {
+            prolongedLookingAway = true;
+          }
+        } else {
+          lookingAwaySinceRef.current = null;
+        }
+
+        const newAlerts: SuspiciousActivity[] = [];
+        let penaltyTotal = 0;
+
+        if (data.phoneDetected && canEmit("PHONE_DETECTED")) {
+          newAlerts.push({
+            id: `phone-${now}`,
+            type: "mobile_phone",
+            timestamp: new Date().toISOString(),
+            description: data.reason || "Mobile phone or unauthorized device detected in camera frame.",
+            severity: "high",
+            videoOffsetSeconds: elapsedSeconds,
+          });
+          penaltyTotal += 18;
+          setActiveAlert("⚠️ Mobile phone / unauthorized device detected!");
+        }
+
+        if ((data.multiplePeopleDetected || data.personCount > 1) && canEmit("MULTIPLE_PEOPLE")) {
+          newAlerts.push({
+            id: `multi-${now}`,
+            type: "multiple_faces",
+            timestamp: new Date().toISOString(),
+            description: `Multiple people detected in frame (${data.personCount} persons visible).`,
+            severity: "high",
+            videoOffsetSeconds: elapsedSeconds,
+          });
+          penaltyTotal += 20;
+          setActiveAlert(`⚠️ Multiple people detected (${data.personCount} persons in frame)!`);
+        }
+
+        if (prolongedLookingAway && canEmit("LOOKING_AWAY")) {
+          newAlerts.push({
+            id: `gaze-${now}`,
+            type: "reading_behavior",
+            timestamp: new Date().toISOString(),
+            description: `Candidate looking away (${data.gazeDirection}) for > 2.5s.`,
+            severity: "medium",
+            videoOffsetSeconds: elapsedSeconds,
+          });
+          penaltyTotal += 10;
+          setActiveAlert(`⚠️ Looking away from screen (${data.gazeDirection})!`);
+        }
+
+        if (data.personCount === 0 && canEmit("NO_FACE")) {
+          newAlerts.push({
+            id: `noface-${now}`,
+            type: "no_face",
+            timestamp: new Date().toISOString(),
+            description: "Candidate face not detected in camera frame.",
+            severity: "medium",
+            videoOffsetSeconds: elapsedSeconds,
+          });
+          penaltyTotal += 10;
+          setActiveAlert("⚠️ No face detected in camera frame!");
+        }
+
+        const nextTrust = Math.max(10, trustScoreRef.current - penaltyTotal);
+        if (penaltyTotal > 0 && onTrustScoreChange) {
+          onTrustScoreChange(nextTrust);
+        }
+        newAlerts.forEach((al) => {
+          if (onMalpracticeAlert) onMalpracticeAlert(al);
+        });
+
+        setMetrics((prev) => ({
+          ...prev,
+          faceDetected: data.personCount > 0,
+          multipleFaces: Boolean(data.multiplePeopleDetected || data.personCount > 1),
+          faceConfidence: Math.round((data.confidence ?? 0.95) * 100),
+          eyeGaze: mapGazeLabel(data.gazeDirection, Boolean(data.lookingAway)),
+          headPose: data.lookingAway ? (data.gazeDirection === "down" ? "Looking Down" : "Forward") : "Forward",
+          phoneDetected: Boolean(data.phoneDetected),
+          trustScore: penaltyTotal > 0 ? nextTrust : prev.trustScore,
+          malpracticeAlerts: newAlerts.length > 0 ? [...newAlerts, ...prev.malpracticeAlerts] : prev.malpracticeAlerts,
+        }));
+
+        if (newAlerts.length > 0) {
+          setTimeout(() => {
+            if (!cancelled) setActiveAlert(null);
+          }, 4500);
+        }
+      } catch {
+        // Graceful fallback: never freeze camera or crash UI on transient frame error
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    };
+
+    const interval = setInterval(analyzeCurrentFrame, 2500);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [streamActive, videoRef, sessionId, elapsedSeconds, onMalpracticeAlert, onTrustScoreChange]);
 
   return (
     <div className="space-y-3">

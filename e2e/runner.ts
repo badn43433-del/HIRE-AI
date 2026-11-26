@@ -196,6 +196,77 @@ async function main() {
     return `Registered & logged in user ${loginData.user.id} (${loginData.user.role})`;
   });
 
+  // 10. AI Proctoring: PHONE_DETECTED
+  await runTest("E2E-10: Proctor detects PHONE_DETECTED & updates trust score", async () => {
+    const res = await fetch(`${BASE_URL}/api/proctor/analyze-frame`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: createdSessionId,
+        elapsedSeconds: 20,
+        simulatedSignals: {
+          personCount: 1,
+          phoneDetected: true,
+          lookingAway: false,
+          gazeDirection: "center",
+          reason: "Smartphone held near keyboard",
+        },
+      }),
+    });
+    assert(res.status === 200, `Expected 200, got ${res.status}`);
+    const data = await res.json();
+    assert(data.phoneDetected === true, "phoneDetected should be true");
+    assert(data.violations.some((v: any) => v.code === "PHONE_DETECTED"), "Missing PHONE_DETECTED violation");
+    assert(typeof data.updatedTrustScore === "number" && data.updatedTrustScore < 100, "Trust score not decremented");
+    return `PHONE_DETECTED logged | trustScore=${data.updatedTrustScore}%`;
+  });
+
+  // 11. AI Proctoring: LOOKING_AWAY
+  await runTest("E2E-11: Proctor detects LOOKING_AWAY (gazeDirection=left)", async () => {
+    const res = await fetch(`${BASE_URL}/api/proctor/analyze-frame`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: createdSessionId,
+        elapsedSeconds: 35,
+        simulatedSignals: {
+          personCount: 1,
+          phoneDetected: false,
+          lookingAway: true,
+          gazeDirection: "left",
+        },
+      }),
+    });
+    assert(res.status === 200, `Expected 200, got ${res.status}`);
+    const data = await res.json();
+    assert(data.lookingAway === true && data.gazeDirection === "left", "Expected lookingAway=true, gazeDirection=left");
+    assert(data.violations.some((v: any) => v.code === "LOOKING_AWAY"), "Missing LOOKING_AWAY violation");
+    return `LOOKING_AWAY logged | trustScore=${data.updatedTrustScore}%`;
+  });
+
+  // 12. AI Proctoring: MULTIPLE_PEOPLE
+  await runTest("E2E-12: Proctor detects MULTIPLE_PEOPLE (personCount=2)", async () => {
+    const res = await fetch(`${BASE_URL}/api/proctor/analyze-frame`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: createdSessionId,
+        elapsedSeconds: 50,
+        simulatedSignals: {
+          personCount: 2,
+          multiplePeopleDetected: true,
+          phoneDetected: false,
+          lookingAway: false,
+        },
+      }),
+    });
+    assert(res.status === 200, `Expected 200, got ${res.status}`);
+    const data = await res.json();
+    assert(data.multiplePeopleDetected === true && data.personCount === 2, "Expected personCount=2");
+    assert(data.violations.some((v: any) => v.code === "MULTIPLE_PEOPLE"), "Missing MULTIPLE_PEOPLE violation");
+    return `MULTIPLE_PEOPLE logged | trustScore=${data.updatedTrustScore}%`;
+  });
+
   const failed = results.filter((r) => !r.passed).length;
   console.log(`\nSummary: ${results.length - failed}/${results.length} passed`);
   process.exit(failed === 0 ? 0 : 1);

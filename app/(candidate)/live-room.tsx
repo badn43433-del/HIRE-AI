@@ -12,7 +12,8 @@ import {
   TouchableOpacity, 
   Platform,
   TextInput,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  AppState
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -28,6 +29,21 @@ export default function CandidateLiveRoom() {
   const [activeTab, setActiveTab] = useState<"code" | "hud" | "chat">("code");
   const [micMuted, setMicMuted] = useState(false);
   const [cameraOff, setCameraOff] = useState(false);
+  const [trustScore, setTrustScore] = useState(96);
+  const [appSwitches, setAppSwitches] = useState(0);
+  const [proctorWarning, setProctorWarning] = useState<string | null>(null);
+
+  // Detect app backgrounding / switching on mobile
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "background" || nextState === "inactive") {
+        setAppSwitches((c) => c + 1);
+        setTrustScore((s) => Math.max(20, s - 10));
+        setProctorWarning("⚠️ App backgrounding / screen switch detected and logged.");
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   // Live countdown timer
   const [secondsRemaining, setSecondsRemaining] = useState(INTERVIEW_DURATION_SECONDS);
@@ -88,6 +104,16 @@ export default function CandidateLiveRoom() {
             </View>
           </View>
 
+          {/* Proctoring Alert Banner */}
+          {proctorWarning && (
+            <View style={styles.proctorAlertBanner}>
+              <Text style={styles.proctorAlertText}>{proctorWarning}</Text>
+              <TouchableOpacity onPress={() => setProctorWarning(null)}>
+                <Text style={styles.proctorDismissText}>Dismiss</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Video Grid Section */}
           <View style={styles.videoSection}>
             {/* Interviewer Video Tile */}
@@ -113,7 +139,7 @@ export default function CandidateLiveRoom() {
               </Text>
               {!cameraOff && (
                 <View style={styles.trustPill}>
-                  <Text style={styles.trustPillText}>AI Trust: 96% ✓</Text>
+                  <Text style={styles.trustPillText}>AI Trust: {trustScore}% ✓</Text>
                 </View>
               )}
               {micMuted && (
@@ -160,7 +186,7 @@ export default function CandidateLiveRoom() {
 
           {/* Workspace Area */}
           {activeTab === "hud" && (
-            <CrossPlatformHUD trustScore={96} gazeStatus="Center" tabSwitches={0} />
+            <CrossPlatformHUD trustScore={trustScore} gazeStatus="Center" tabSwitches={appSwitches} />
           )}
 
           {activeTab === "code" && (
@@ -228,6 +254,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#1e293b",
     marginBottom: 12,
+  },
+  proctorAlertBanner: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#be123c",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginBottom: 12,
+    gap: 8,
+  },
+  proctorAlertText: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "700",
+    flex: 1,
+  },
+  proctorDismissText: {
+    color: "#fecdd3",
+    fontSize: 11,
+    fontWeight: "700",
   },
   topBarLeft: {
     flexDirection: "row",

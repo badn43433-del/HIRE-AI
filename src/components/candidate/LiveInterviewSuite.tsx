@@ -53,6 +53,7 @@ export default function LiveInterviewSuite({
   // Proctoring & Trust Score
   const [trustScore, setTrustScore] = useState(96);
   const [malpracticeEvents, setMalpracticeEvents] = useState<SuspiciousActivity[]>([]);
+  const [liveWarning, setLiveWarning] = useState<string | null>(null);
 
   // Live Chat
   const [chats, setChats] = useState<ChatMessage[]>([
@@ -245,6 +246,30 @@ export default function LiveInterviewSuite({
           </button>
         </div>
       </div>
+
+      {/* Live Proctoring Warning Toast (Visible across all tabs) */}
+      <AnimatePresence>
+        {liveWarning && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="px-4 py-2.5 rounded-2xl bg-rose-600 text-white text-xs font-bold flex items-center justify-between shadow-lg shadow-rose-600/30"
+          >
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 shrink-0 animate-bounce" />
+              <span>PROCTORING ALERT: {liveWarning}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setLiveWarning(null)}
+              className="text-[10px] font-mono bg-rose-800 px-2 py-0.5 rounded cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Split Grid: Left Videos, Right Multi-tool Workspace */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 min-h-0 overflow-hidden">
@@ -526,16 +551,23 @@ export default function LiveInterviewSuite({
               </div>
             )}
 
-            {activeWorkspaceTab === "ai_hud" && (
-              <div className="h-full overflow-y-auto space-y-4">
-                <AIProctoringHUD
-                  streamActive={!cameraOff}
-                  trustScore={trustScore}
-                  onTrustScoreChange={(newScore) => setTrustScore(newScore)}
-                  onMalpracticeAlert={(alert) => setMalpracticeEvents(prev => [alert, ...prev])}
-                />
+            <div className={activeWorkspaceTab === "ai_hud" ? "h-full overflow-y-auto space-y-4" : "hidden"}>
+              <AIProctoringHUD
+                streamActive={!cameraOff}
+                videoRef={candidateVideoRef}
+                sessionId={interview.id}
+                elapsedSeconds={45 * 60 - secondsRemaining}
+                trustScore={trustScore}
+                onTrustScoreChange={(newScore) => setTrustScore(newScore)}
+                onMalpracticeAlert={(alert) => {
+                  setMalpracticeEvents(prev => [alert, ...prev]);
+                  setLiveWarning(alert.description);
+                  setTimeout(() => setLiveWarning(null), 5000);
+                }}
+              />
 
-                {/* Malpractice Timeline */}
+              {activeWorkspaceTab === "ai_hud" && (
+                /* Malpractice Timeline */
                 <div className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 space-y-3">
                   <h4 className="text-xs font-bold text-slate-800 dark:text-white uppercase font-mono tracking-wider flex items-center gap-1.5">
                     <ShieldAlert className="h-4 w-4 text-amber-500" /> Proctor Event Log (Audit Trail)
@@ -561,8 +593,8 @@ export default function LiveInterviewSuite({
                     </div>
                   )}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

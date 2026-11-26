@@ -222,6 +222,12 @@ export default function CandidateApp({ onBackToPortal }: CandidateAppProps) {
   }, [step]);
 
   // Access Webcam & Mic
+  useEffect(() => {
+    if ((step === "permissions" || step === "room") && !cameraActive) {
+      startWebcam();
+    }
+  }, [step]);
+
   const startWebcam = async () => {
     try {
       if (mediaStream) {

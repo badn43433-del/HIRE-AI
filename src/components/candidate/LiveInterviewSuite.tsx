@@ -48,6 +48,7 @@ export default function LiveInterviewSuite({
   // Video references
   const candidateVideoRef = useRef<HTMLVideoElement>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [mediaError, setMediaError] = useState<string | null>(null);
 
   // Proctoring & Trust Score
   const [trustScore, setTrustScore] = useState(96);
@@ -67,25 +68,36 @@ export default function LiveInterviewSuite({
   const [fileAttached, setFileAttached] = useState<string | null>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Start local video stream
-  useEffect(() => {
-    let stream: MediaStream | null = null;
+  // Start local camera & mic stream by default
+  const startDefaultMedia = () => {
+    setMediaError(null);
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setMediaError("Camera & Microphone API unavailable in this browser.");
+      return;
+    }
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(s => {
-        stream = s;
+        s.getTracks().forEach(t => { t.enabled = true; });
         setLocalStream(s);
+        setMicMuted(false);
+        setCameraOff(false);
         if (candidateVideoRef.current) {
           candidateVideoRef.current.srcObject = s;
         }
       })
       .catch(err => {
-        console.warn("Camera stream sandboxed:", err);
+        console.warn("Camera/Mic permission required:", err);
+        setMediaError("Please allow Camera & Microphone access to continue.");
       });
+  };
 
+  useEffect(() => {
+    startDefaultMedia();
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(t => t.stop());
-      }
+      setLocalStream(prev => {
+        prev?.getTracks().forEach(t => t.stop());
+        return null;
+      });
     };
   }, []);
 
@@ -273,6 +285,20 @@ export default function LiveInterviewSuite({
               muted
               className={`w-full h-full object-cover mirror ${cameraOff ? "hidden" : "block"}`}
             />
+
+            {mediaError && !cameraOff && (
+              <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-4 text-center space-y-2.5 z-10">
+                <AlertCircle className="h-7 w-7 text-amber-400" />
+                <p className="text-xs text-slate-200 max-w-xs">{mediaError}</p>
+                <button
+                  type="button"
+                  onClick={startDefaultMedia}
+                  className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold cursor-pointer"
+                >
+                  Enable Camera &amp; Mic
+                </button>
+              </div>
+            )}
 
             {cameraOff && (
               <div className="text-center space-y-2">

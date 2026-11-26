@@ -3,17 +3,39 @@
  * Seamlessly routes across Web, Android, and iOS (Expo Go)
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { CrossButton } from "../components/crossplatform/Button";
 import { CrossCard } from "../components/crossplatform/Card";
 import { CrossBadge } from "../components/crossplatform/Badge";
 import { UserRole } from "../src/types";
+import { checkBackendConnectivity } from "../services/api";
 
 export default function HomeScreen() {
   const [selectedRole, setSelectedRole] = useState<UserRole>("candidate");
+  const [backendStatus, setBackendStatus] = useState<{
+    checking: boolean;
+    ok: boolean;
+    baseUrl: string;
+    message: string;
+  }>({
+    checking: true,
+    ok: false,
+    baseUrl: "",
+    message: "Checking backend connection...",
+  });
   const router = useRouter();
+
+  const runConnectivityCheck = async () => {
+    setBackendStatus((prev) => ({ ...prev, checking: true }));
+    const res = await checkBackendConnectivity();
+    setBackendStatus({ checking: false, ...res });
+  };
+
+  useEffect(() => {
+    runConnectivityCheck();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -80,6 +102,27 @@ export default function HomeScreen() {
             }}
             style={styles.enterBtn}
           />
+        </CrossCard>
+
+        {/* Cross-Network Backend Status Card */}
+        <CrossCard style={styles.statusCard}>
+          <View style={styles.statusHeaderRow}>
+            <Text style={styles.cardHeader}>BACKEND CONNECTIVITY</Text>
+            <CrossBadge
+              label={backendStatus.checking ? "CHECKING" : backendStatus.ok ? "CONNECTED" : "OFFLINE"}
+              variant={backendStatus.checking ? "warning" : backendStatus.ok ? "success" : "danger"}
+            />
+          </View>
+          <Text style={styles.statusUrl}>{backendStatus.baseUrl || "EXPO_PUBLIC_API_URL not set"}</Text>
+          <Text style={styles.statusMsg}>{backendStatus.message}</Text>
+          {!backendStatus.ok && !backendStatus.checking && (
+            <CrossButton
+              title="Re-check Connection"
+              variant="secondary"
+              onPress={runConnectivityCheck}
+              style={styles.recheckBtn}
+            />
+          )}
         </CrossCard>
 
         {/* Cross-Platform Specifications Card */}
@@ -196,6 +239,32 @@ const styles = StyleSheet.create({
   },
   enterBtn: {
     width: "100%",
+  },
+  statusCard: {
+    width: "100%",
+    maxWidth: 480,
+    marginBottom: 16,
+  },
+  statusHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  statusUrl: {
+    color: "#38bdf8",
+    fontSize: 11,
+    fontFamily: "monospace",
+  },
+  statusMsg: {
+    color: "#cbd5e1",
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 4,
+  },
+  recheckBtn: {
+    marginTop: 10,
+    paddingVertical: 8,
   },
   specCard: {
     width: "100%",

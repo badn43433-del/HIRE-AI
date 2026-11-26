@@ -32,8 +32,19 @@ app.use((req, res, next) => {
     .map((o) => o.trim())
     .filter(Boolean);
 
-  if (origin && (allowedOrigins.includes(origin) || origin.endsWith(".exp.direct") || origin.endsWith(".ngrok-free.app"))) {
+  if (
+    origin &&
+    (allowedOrigins.includes(origin) ||
+      origin.startsWith("exp://") ||
+      origin.endsWith(".exp.direct") ||
+      origin.endsWith(".ngrok-free.app") ||
+      origin.endsWith(".ngrok.app") ||
+      origin.endsWith(".ngrok.io") ||
+      origin.endsWith(".trycloudflare.com") ||
+      origin.endsWith(".run.app"))
+  ) {
     res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
   } else if (!origin) {
     res.setHeader("Access-Control-Allow-Origin", "*");
   }

@@ -85,6 +85,9 @@ export default function AIChatAssistant({ userRole, userName }: AIChatAssistantP
     if (!textOverride) setInput("");
     setIsLoading(true);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+
     try {
       const apiMessages = nextMessages
         .filter((m) => m.id !== "welcome")
@@ -93,6 +96,7 @@ export default function AIChatAssistant({ userRole, userName }: AIChatAssistantP
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           messages: apiMessages,
           roleContext: userRole,
@@ -114,8 +118,13 @@ export default function AIChatAssistant({ userRole, userName }: AIChatAssistantP
 
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err: any) {
-      setError(err?.message || "Unable to reach AI assistant.");
+      if (err?.name === "AbortError") {
+        setError("AI request timed out. Please try again.");
+      } else {
+        setError(err?.message || "Unable to reach AI assistant.");
+      }
     } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
     }
   };

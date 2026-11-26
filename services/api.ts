@@ -5,13 +5,17 @@
 
 import { Platform } from "react-native";
 
-// Automatically resolve localhost for Web vs Android Emulator (10.0.2.2) vs Physical Expo Go Device
+// Resolve API base URL from Expo/Vite env vars with localhost/emulator fallback
 export const getApiBaseUrl = (): string => {
+  const envUrl =
+    (typeof process !== "undefined" && (process.env?.EXPO_PUBLIC_API_URL || process.env?.VITE_API_URL)) ||
+    (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_URL);
+  if (envUrl && typeof envUrl === "string" && envUrl.trim()) {
+    return envUrl.trim().replace(/\/+$/, "");
+  }
   if (Platform.OS === "android") {
-    // Android emulator alias for host machine
     return "http://10.0.2.2:8000";
   }
-  // Web & iOS simulator
   return "http://localhost:8000";
 };
 
@@ -47,5 +51,9 @@ export async function apiRequest<T>(
     throw new Error(message);
   }
 
-  return response.json();
+  if (response.status === 204) {
+    return undefined as unknown as T;
+  }
+  const text = await response.text();
+  return (text ? JSON.parse(text) : {}) as T;
 }

@@ -21,9 +21,38 @@ const __filename = typeof import.meta?.url === "string"
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
+
+// CORS headers for Web, Vite, and Expo mobile/tunnel clients
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8081")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+  if (origin && (allowedOrigins.includes(origin) || origin.endsWith(".exp.direct") || origin.endsWith(".ngrok-free.app"))) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  } else if (!origin) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 app.use(express.json({ limit: '10mb' }));
+
+// Clean JSON error response for malformed request bodies
+app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err && err.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "Invalid JSON payload." });
+  }
+  next(err);
+});
 
 // Initialize DB file path
 const DB_FILE = path.join(process.cwd(), "server_db.json");
@@ -673,7 +702,9 @@ app.get("/api/positions", (req, res) => {
 
 // API: Setup a new interview session
 app.post("/api/sessions", (req, res) => {
-  const { candidateName, candidateEmail, jobId } = req.body;
+  const candidateName = typeof req.body?.candidateName === "string" ? req.body.candidateName.trim() : "";
+  const candidateEmail = typeof req.body?.candidateEmail === "string" ? req.body.candidateEmail.trim() : "";
+  const jobId = typeof req.body?.jobId === "string" ? req.body.jobId.trim() : "";
   
   if (!candidateName || !candidateEmail || !jobId) {
     return res.status(400).json({ error: "Candidate details and job position are required." });

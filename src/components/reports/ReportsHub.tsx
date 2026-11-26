@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   FileText, Award, ShieldCheck, Download, Search, 
   Sparkles, ExternalLink, Filter, CheckCircle2, AlertTriangle, 
@@ -20,6 +20,12 @@ export default function ReportsHub({ reports, onSelectReport }: ReportsHubProps)
   const [selectedReport, setSelectedReport] = useState<AIEvaluationReport | null>(reports[0] || null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+
+  useEffect(() => {
+    if (!selectedReport && reports.length > 0) {
+      setSelectedReport(reports[0]);
+    }
+  }, [reports, selectedReport]);
 
   const filteredReports = reports.filter(r => {
     const matchesSearch = r.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) || 

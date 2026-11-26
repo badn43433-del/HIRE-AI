@@ -75,7 +75,18 @@ export default function App() {
     navigate(`/${newRole}`, { replace: true });
   };
 
-  if (!isAuthenticated && !isLoading) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-300 flex flex-col items-center justify-center gap-3">
+        <div className="h-10 w-10 rounded-xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center">
+          <ShieldCheck className="h-5 w-5 text-indigo-400 animate-pulse" />
+        </div>
+        <span className="text-xs font-mono uppercase tracking-widest">Initializing HireShield AI...</span>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return (
       <Routes>
         <Route path="/login" element={<AuthPortal onLoginSuccess={handleLoginSuccess} />} />
@@ -218,6 +229,23 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {/* Mobile Role Switcher (< md) */}
+      <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-2 flex items-center justify-center gap-2">
+        {(["candidate", "interviewer"] as UserRole[]).map((r) => (
+          <button
+            key={r}
+            onClick={() => handleSwitchRole(r)}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
+              userRole === r && !isReportsPage
+                ? "bg-indigo-600 text-white shadow-xs"
+                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+            }`}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
 
       {/* Protected Routes */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 relative z-10">

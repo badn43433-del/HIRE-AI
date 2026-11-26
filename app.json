@@ -4,15 +4,12 @@
     "slug": "hireshield-ai",
     "version": "2.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "scheme": "hireshield",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#020617"
     },
-    "sdkVersion": "57.0.9",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.hireshield.enterprise",
@@ -23,7 +20,6 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#020617"
       },
       "package": "com.hireshield.enterprise",
@@ -35,7 +31,6 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
     "plugins": [

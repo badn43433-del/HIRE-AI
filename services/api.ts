@@ -4,8 +4,9 @@
  */
 
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 
-// Resolve API base URL from Expo/Vite env vars with localhost/emulator fallback
+// Resolve API base URL from Expo/Vite env vars, Expo Go LAN hostUri, or localhost/emulator fallback
 export const getApiBaseUrl = (): string => {
   const envUrl =
     (typeof process !== "undefined" && (process.env?.EXPO_PUBLIC_API_URL || process.env?.VITE_API_URL)) ||
@@ -13,10 +14,20 @@ export const getApiBaseUrl = (): string => {
   if (envUrl && typeof envUrl === "string" && envUrl.trim()) {
     return envUrl.trim().replace(/\/+$/, "");
   }
-  if (Platform.OS === "android") {
-    return "http://10.0.2.2:8000";
+
+  // Expo Go on physical device: derive Metro bundler host LAN IP and target Express server port 3000
+  const hostUri = Constants?.expoConfig?.hostUri;
+  if (hostUri && typeof hostUri === "string") {
+    const hostIp = hostUri.split(":")[0];
+    if (hostIp) {
+      return `http://${hostIp}:3000`;
+    }
   }
-  return "http://localhost:8000";
+
+  if (Platform.OS === "android") {
+    return "http://10.0.2.2:3000";
+  }
+  return "http://localhost:3000";
 };
 
 export const API_BASE_URL = getApiBaseUrl();

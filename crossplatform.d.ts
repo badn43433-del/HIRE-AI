@@ -41,6 +41,17 @@ declare module "react-native" {
   };
 }
 
+declare module "expo-constants" {
+  const Constants: {
+    expoConfig?: {
+      hostUri?: string;
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
+  export default Constants;
+}
+
 declare module "expo-status-bar" {
   import * as React from "react";
   export const StatusBar: React.FC<{ style?: "auto" | "inverted" | "light" | "dark" }>;

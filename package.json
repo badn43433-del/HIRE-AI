@@ -3,9 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "expo-router/entry",
   "scripts": {
     "dev": "tsx server.ts",
     "expo": "npx expo start",
+    "expo:start": "npx expo start",
+    "tunnel": "npx expo start --tunnel",
+    "android": "npx expo start --android",
     "expo:web": "npx expo start --web",
     "expo:android": "npx expo start --android",
     "expo:ios": "npx expo start --ios",

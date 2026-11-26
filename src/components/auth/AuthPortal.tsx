@@ -141,6 +141,7 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorText("");
+    setSuccessText("");
 
     const ext = runExtensionScan();
     if (ext.detected) {
@@ -157,7 +158,11 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
       return;
     }
 
-    if (isSupabaseConnected()) {
+    const isDemoAccount =
+      email.trim().toLowerCase() === "sarah.jenkins@enterprise-recruit.com" ||
+      email.trim().toLowerCase() === "marcus.vance@techcorp.io";
+
+    if (isSupabaseConnected() && !isDemoAccount) {
       setIsSubmitting(true);
       const { session, user, error } = await signInWithSupabase(email.trim(), password);
       setIsSubmitting(false);
@@ -182,6 +187,7 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorText("");
+    setSuccessText("");
 
     const ext = runExtensionScan();
     if (ext.detected) {
@@ -206,7 +212,11 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
       return;
     }
 
-    if (isSupabaseConnected()) {
+    const isDemoAccount =
+      email.trim().toLowerCase() === "sarah.jenkins@enterprise-recruit.com" ||
+      email.trim().toLowerCase() === "marcus.vance@techcorp.io";
+
+    if (isSupabaseConnected() && !isDemoAccount) {
       setIsSubmitting(true);
       const { session, user, error, needsEmailConfirmation } = await signUpWithSupabase(
         email.trim(),
@@ -387,36 +397,6 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
                   <span className="capitalize">{role}</span>
                 </button>
               ))}
-            </div>
-          </div>
-        )}
-
-        {/* Demo Quick-Fill Accounts Pill */}
-        {authMode !== "otp" && (
-          <div className="bg-slate-900/60 border border-indigo-900/50 rounded-2xl p-3 space-y-2">
-            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
-              <span className="flex items-center gap-1 text-indigo-400 font-bold">
-                <Sparkles className="h-3 w-3 animate-pulse" /> Sandbox 1-Click Credentials:
-              </span>
-              <span className="text-[9px] text-slate-500">Auto-fills demo data</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => triggerQuickFill("candidate")}
-                className="px-2 py-1.5 bg-slate-800/90 hover:bg-indigo-950 border border-slate-700 hover:border-indigo-500/50 rounded-xl text-[10px] text-left transition-all cursor-pointer text-slate-300 hover:text-white"
-              >
-                <div className="font-bold text-indigo-300">Candidate</div>
-                <div className="text-[9px] text-slate-400 truncate">Sarah J.</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => triggerQuickFill("interviewer")}
-                className="px-2 py-1.5 bg-slate-800/90 hover:bg-sky-950 border border-slate-700 hover:border-sky-500/50 rounded-xl text-[10px] text-left transition-all cursor-pointer text-slate-300 hover:text-white"
-              >
-                <div className="font-bold text-sky-300">Interviewer</div>
-                <div className="text-[9px] text-slate-400 truncate">Marcus V.</div>
-              </button>
             </div>
           </div>
         )}

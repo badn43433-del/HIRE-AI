@@ -31,12 +31,15 @@ export default function InterviewerPortal({
   const [activeTab, setActiveTab] = useState<"pipeline" | "evaluator" | "comparison" | "reports">("pipeline");
 
   // Schedule / Invite Candidate Modal
+  const todayStr = new Date().toISOString().split("T")[0];
+  const [interviews, setInterviews] = useState<ScheduledInterview[]>(MOCK_SCHEDULED_INTERVIEWS);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [newCandidateName, setNewCandidateName] = useState("");
   const [newCandidateEmail, setNewCandidateEmail] = useState("");
   const [newRoleTitle, setNewRoleTitle] = useState("Senior Frontend UI Architect");
-  const [newDate, setNewDate] = useState("2026-10-24");
+  const [newDate, setNewDate] = useState(todayStr);
   const [newTime, setNewTime] = useState("15:00");
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [scheduleSuccess, setScheduleSuccess] = useState(false);
 
   // Resume Preview Modal
@@ -65,13 +68,41 @@ export default function InterviewerPortal({
 
   const handleCreateInterview = (e: React.FormEvent) => {
     e.preventDefault();
+    setScheduleError(null);
+    if (!newCandidateName.trim() || !newCandidateEmail.trim()) {
+      setScheduleError("Candidate name and email are required.");
+      return;
+    }
+    if (newDate < todayStr) {
+      setScheduleError("Please select today or a future date.");
+      return;
+    }
+    const created: ScheduledInterview = {
+      id: `int-${Date.now().toString(36)}`,
+      candidateId: `cand-${Date.now().toString(36)}`,
+      candidateName: newCandidateName.trim(),
+      candidateEmail: newCandidateEmail.trim().toLowerCase(),
+      interviewerId: "int-1",
+      interviewerName,
+      interviewerEmail,
+      positionId: "pos-1",
+      roleTitle: newRoleTitle,
+      department: "Engineering",
+      scheduledDate: newDate,
+      scheduledTime: newTime,
+      durationMinutes: 45,
+      status: "scheduled",
+      meetingLink: `https://hireshield.ai/room/${Date.now().toString(36)}`,
+      skills: ["React", "TypeScript", "System Design"],
+    };
+    setInterviews(prev => [created, ...prev]);
     setScheduleSuccess(true);
     setTimeout(() => {
       setShowScheduleModal(false);
       setScheduleSuccess(false);
       setNewCandidateName("");
       setNewCandidateEmail("");
-    }, 1200);
+    }, 1000);
   };
 
   const handleSaveRubric = () => {
@@ -187,7 +218,7 @@ export default function InterviewerPortal({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                  {MOCK_SCHEDULED_INTERVIEWS.map((interview) => (
+                  {interviews.map((interview) => (
                     <tr key={interview.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-750 transition-all">
                       <td className="p-3.5 pl-5">
                         <div className="font-bold text-slate-900 dark:text-white">{interview.candidateName}</div>
@@ -633,6 +664,7 @@ export default function InterviewerPortal({
                       <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Date</label>
                       <input
                         type="date"
+                        min={todayStr}
                         value={newDate}
                         onChange={(e) => setNewDate(e.target.value)}
                         className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
@@ -648,6 +680,10 @@ export default function InterviewerPortal({
                       />
                     </div>
                   </div>
+
+                  {scheduleError && (
+                    <p className="text-xs text-rose-500 font-semibold">{scheduleError}</p>
+                  )}
 
                   <div className="pt-2 flex justify-end gap-2">
                     <button

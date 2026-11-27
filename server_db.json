@@ -31,6 +31,14 @@
       "role": "interviewer",
       "passwordHash": "f138dc7468d40987e12d0d2a6b61af48:c489f76ec10f8d2fc47a24e6034d16b083922cb0fa4a56ab66711880c28f34f138a94cbf07accd50dce481c09aa01295ba15133817c91f1848128e78c700eb98",
       "createdAt": "2026-11-27T11:32:29.068Z"
+    },
+    {
+      "id": "usr-95adeb18",
+      "name": "E2E Registered User",
+      "email": "e2e.user.1795781253375@testdomain.com",
+      "role": "interviewer",
+      "passwordHash": "dc7c87042a08c887a3e5c56c9f67edc5:3c0c2b3d8aadc03143647972c50746d05fa560b78837dae05dabac81f1f81e8a1e0fd72c7f0f08ce5b64aee55eb10e950f65f561a849cc93171523b1dfd12d1c",
+      "createdAt": "2026-11-27T12:07:33.484Z"
     }
   ],
   "sessions": [
@@ -357,6 +365,64 @@
       "supportEmergencyActive": false,
       "completedAt": "2026-11-27T11:32:28.131Z",
       "trustScore": 52
+    },
+    {
+      "id": "ses-hkr81wq6",
+      "candidateName": "E2E Runner Candidate",
+      "candidateEmail": "e2e.runner@test.local",
+      "jobId": "pos-1",
+      "status": "completed",
+      "currentQuestionIndex": 0,
+      "responses": [
+        {
+          "questionText": "Explain React render optimization",
+          "answerText": "Batch WebSocket updates with debounce and memoize with useMemo and React.memo.",
+          "durationSeconds": 30,
+          "transcriptText": "Batch WebSocket updates..."
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-wocd1z",
+          "type": "tab_switch",
+          "timestamp": "2026-11-27T12:07:32.446Z",
+          "description": "E2E Runner focus blur",
+          "severity": "low",
+          "videoOffsetSeconds": 10
+        },
+        {
+          "id": "evt-oaiy1g",
+          "type": "mobile_phone",
+          "code": "PHONE_DETECTED",
+          "timestamp": "2026-11-27T12:07:33.704Z",
+          "description": "Smartphone held near keyboard",
+          "severity": "high",
+          "videoOffsetSeconds": 20
+        },
+        {
+          "id": "evt-d7dvky",
+          "type": "reading_behavior",
+          "code": "LOOKING_AWAY",
+          "timestamp": "2026-11-27T12:07:33.717Z",
+          "description": "Candidate looking away from screen (gazeDirection=left).",
+          "severity": "medium",
+          "videoOffsetSeconds": 35
+        },
+        {
+          "id": "evt-t4a2y6",
+          "type": "multiple_faces",
+          "code": "MULTIPLE_PEOPLE",
+          "timestamp": "2026-11-27T12:07:33.728Z",
+          "description": "Multiple people detected in camera frame (personCount=2).",
+          "severity": "high",
+          "videoOffsetSeconds": 50
+        }
+      ],
+      "startedAt": "2026-11-27T12:07:31.847Z",
+      "chats": [],
+      "supportEmergencyActive": false,
+      "completedAt": "2026-11-27T12:07:32.773Z",
+      "trustScore": 52
     }
   ],
   "reports": [
@@ -494,7 +560,7 @@
       "communicationScore": 80,
       "confidenceScore": 75,
       "suspicionScore": 25,
-      "finalRank": 10,
+      "finalRank": 11,
       "shortlistStatus": "STANDBY",
       "semanticRelevance": 82,
       "qualitativeNotes": {
@@ -547,7 +613,7 @@
       "communicationScore": 78,
       "confidenceScore": 81,
       "suspicionScore": 55,
-      "finalRank": 11,
+      "finalRank": 12,
       "shortlistStatus": "STANDBY",
       "semanticRelevance": 79,
       "qualitativeNotes": {
@@ -600,7 +666,7 @@
       "communicationScore": 70,
       "confidenceScore": 55,
       "suspicionScore": 85,
-      "finalRank": 12,
+      "finalRank": 13,
       "shortlistStatus": "REJECTED",
       "semanticRelevance": 61,
       "qualitativeNotes": {
@@ -860,7 +926,7 @@
       "communicationScore": 71,
       "confidenceScore": 75,
       "suspicionScore": 25,
-      "finalRank": 9,
+      "finalRank": 10,
       "shortlistStatus": "SHORTLISTED",
       "semanticRelevance": 91,
       "qualitativeNotes": {
@@ -937,6 +1003,54 @@
           "id": "evt-p8jnl3",
           "type": "tab_switch",
           "timestamp": "2026-11-27T11:32:27.207Z",
+          "description": "E2E Runner focus blur",
+          "severity": "low",
+          "videoOffsetSeconds": 10
+        }
+      ],
+      "chats": [],
+      "supportEmergencyActive": false
+    },
+    {
+      "id": "rep-jx044pae",
+      "candidateId": "ses-hkr81wq6",
+      "candidateName": "E2E Runner Candidate",
+      "candidateEmail": "e2e.runner@test.local",
+      "jobPositionId": "pos-1",
+      "jobTitle": "Senior Frontend UI Architect",
+      "technicalScore": 95,
+      "communicationScore": 78,
+      "confidenceScore": 79,
+      "suspicionScore": 25,
+      "finalRank": 9,
+      "shortlistStatus": "SHORTLISTED",
+      "semanticRelevance": 91,
+      "qualitativeNotes": {
+        "strengths": [
+          "Demonstrates structured conceptual thinking during system architectural discussion.",
+          "Good articulation of core React hook dependencies and performance mechanics.",
+          "Understands standard browser sandboxing capabilities and CSP defenses."
+        ],
+        "weaknesses": [
+          "Pacing speed could be regulated. Candidate spoke slightly fast under technical evaluation pressure.",
+          "Could expand more on manual testing protocols and concrete multi-layered JWT rotation details."
+        ],
+        "integritySummary": "Security systems registered 1 integrity flags (including tab focus blur actions). Behavior was logged on the timeline.",
+        "overallRecommendation": "Strong technical candidate demonstrating clear capability inside designated requirements. Recommend proceeding to technical round."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "Explain React render optimization",
+          "candidateAnswer": "Batch WebSocket updates with debounce and memoize with useMemo and React.memo.",
+          "aiRationallyScored": "Answer demonstrates good comprehension of basic terms. Specific technical depth is evaluated at 72% matching expected Enterprise benchmarks.",
+          "score": 72
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-wocd1z",
+          "type": "tab_switch",
+          "timestamp": "2026-11-27T12:07:32.446Z",
           "description": "E2E Runner focus blur",
           "severity": "low",
           "videoOffsetSeconds": 10

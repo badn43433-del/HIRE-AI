@@ -94,7 +94,12 @@ export default function ReportsHub({ reports, onSelectReport }: ReportsHubProps)
 
             {/* Report Cards List */}
             <div className="space-y-2 pt-1 max-h-[520px] overflow-y-auto">
-              {filteredReports.map((r) => (
+              {filteredReports.length === 0 ? (
+                <div className="p-6 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                  No evaluation reports match your filter.
+                </div>
+              ) : (
+              filteredReports.map((r) => (
                 <div
                   key={r.id}
                   onClick={() => setSelectedReport(r)}
@@ -122,7 +127,7 @@ export default function ReportsHub({ reports, onSelectReport }: ReportsHubProps)
                     </span>
                   </div>
                 </div>
-              ))}
+              )))}
             </div>
           </div>
         </div>

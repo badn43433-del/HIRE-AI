@@ -50,6 +50,7 @@ export default function LiveInterviewSuite({
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const [mediaError, setMediaError] = useState<string | null>(null);
+  const [cameraBlockedReason, setCameraBlockedReason] = useState<string | null>(null);
 
   // Proctoring & Trust Score
   const [trustScore, setTrustScore] = useState(96);
@@ -74,7 +75,9 @@ export default function LiveInterviewSuite({
   const startDefaultMedia = () => {
     setMediaError(null);
     if (!navigator.mediaDevices?.getUserMedia) {
-      setMediaError("Camera & Microphone API unavailable in this browser.");
+      const msg = "Camera & Microphone API unavailable in this browser.";
+      setMediaError(msg);
+      setCameraBlockedReason(msg);
       return;
     }
     if (localStreamRef.current) {
@@ -86,23 +89,47 @@ export default function LiveInterviewSuite({
       audio: { deviceId: { ideal: "default" }, echoCancellation: true, noiseSuppression: true }
     })
       .then(s => {
+        const videoTrack = s.getVideoTracks()[0];
+        if (!videoTrack || videoTrack.readyState !== "live" || videoTrack.muted) {
+          s.getTracks().forEach(t => t.stop());
+          const msg = "Default camera is muted or not streaming live frames.";
+          setMediaError(msg);
+          setCameraBlockedReason(msg);
+          return;
+        }
         s.getTracks().forEach(t => {
           t.enabled = true;
           t.onended = () => {
-            setMediaError(`Default ${t.kind === "video" ? "Camera" : "Microphone"} disconnected. Click retry to reconnect.`);
+            const msg = `Default ${t.kind === "video" ? "Camera" : "Microphone"} disconnected. Restore to continue.`;
+            setMediaError(msg);
+            if (t.kind === "video") setCameraBlockedReason(msg);
           };
+          if (t.kind === "video") {
+            t.onmute = () => {
+              const msg = "Default Camera was muted or hardware shutter closed.";
+              setMediaError(msg);
+              setCameraBlockedReason(msg);
+            };
+            t.onunmute = () => {
+              setMediaError(null);
+              setCameraBlockedReason(null);
+            };
+          }
         });
         localStreamRef.current = s;
         setLocalStream(s);
         setMicMuted(false);
         setCameraOff(false);
+        setCameraBlockedReason(null);
         if (candidateVideoRef.current) {
           candidateVideoRef.current.srcObject = s;
         }
       })
       .catch(err => {
         console.warn("Camera/Mic permission required:", err);
-        setMediaError("Please allow Default Camera & Microphone access to continue.");
+        const msg = "Default Camera is blocked, closed, or permission denied. Enable camera access to continue.";
+        setMediaError(msg);
+        setCameraBlockedReason(msg);
       });
   };
 
@@ -140,10 +167,35 @@ export default function LiveInterviewSuite({
   };
 
   const toggleCamera = () => {
+    const nextOff = !cameraOff;
     if (localStream) {
-      localStream.getVideoTracks().forEach(t => { t.enabled = cameraOff; });
+      localStream.getVideoTracks().forEach(t => { t.enabled = !nextOff; });
     }
-    setCameraOff(!cameraOff);
+    setCameraOff(nextOff);
+    if (nextOff) {
+      const reason = "Camera manually turned off during proctored interview.";
+      setCameraBlockedReason(reason);
+      const evt: SuspiciousActivity = {
+        id: `cam-off-${Date.now()}`,
+        type: "no_face",
+        timestamp: new Date().toISOString(),
+        description: reason,
+        severity: "high",
+        videoOffsetSeconds: 45 * 60 - secondsRemaining,
+      };
+      setMalpracticeEvents(prev => [evt, ...prev]);
+      setTrustScore(prev => Math.max(10, prev - 15));
+      fetch(`/api/sessions/${interview.id}/events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(evt),
+      }).catch(() => {});
+    } else {
+      setCameraBlockedReason(null);
+      if (!localStream || localStream.getVideoTracks().every(t => t.readyState !== "live")) {
+        startDefaultMedia();
+      }
+    }
   };
 
   const toggleScreenShare = async () => {
@@ -208,6 +260,12 @@ export default function LiveInterviewSuite({
   };
 
   const confirmEnd = () => {
+    sessionStorage.removeItem("hireshield_active_session_id");
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(t => t.stop());
+      localStreamRef.current = null;
+    }
+    setLocalStream(null);
     onEndInterview({
       role: interview.roleTitle,
       candidateName,
@@ -217,8 +275,47 @@ export default function LiveInterviewSuite({
     });
   };
 
+  const isCameraBlocking = cameraOff || Boolean(mediaError) || Boolean(cameraBlockedReason);
+
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)] min-h-[640px] max-w-7xl mx-auto space-y-3">
+    <div className="relative flex flex-col h-[calc(100vh-140px)] min-h-[640px] max-w-7xl mx-auto space-y-3">
+      {/* Blocking Camera Enforcement Overlay */}
+      {isCameraBlocking && (
+        <div className="fixed inset-0 z-40 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-6">
+          <div className="max-w-md w-full bg-slate-900 border border-rose-500/60 rounded-3xl p-7 shadow-2xl space-y-5 text-center text-white">
+            <div className="h-14 w-14 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center mx-auto">
+              <VideoOff className="h-7 w-7 text-rose-400" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-heading font-extrabold text-rose-300">
+                Active Camera Required
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {cameraBlockedReason || mediaError || "Your camera is turned off or disconnected. Proctored interviews require a continuous live default camera feed."}
+              </p>
+              <p className="text-[11px] font-mono text-amber-300">
+                Violation logged to proctor audit trail • Trust Score: {trustScore}%
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <button
+                type="button"
+                onClick={startDefaultMedia}
+                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
+              >
+                Restore Default Camera &amp; Resume
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowExitConfirm(true)}
+                className="py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition-all cursor-pointer"
+              >
+                End Session
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Top Session Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-xs">
         <div className="flex items-center gap-3">
@@ -568,6 +665,13 @@ export default function LiveInterviewSuite({
                 elapsedSeconds={45 * 60 - secondsRemaining}
                 trustScore={trustScore}
                 onTrustScoreChange={(newScore) => setTrustScore(newScore)}
+                onCameraStatusChange={(healthy, reason) => {
+                  if (!healthy && reason) {
+                    setCameraBlockedReason(reason);
+                  } else if (healthy && !cameraOff) {
+                    setCameraBlockedReason(null);
+                  }
+                }}
                 onMalpracticeAlert={(alert) => {
                   setMalpracticeEvents(prev => [alert, ...prev]);
                   setLiveWarning(alert.description);

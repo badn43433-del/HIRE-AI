@@ -20,6 +20,36 @@ interface WaitingRoomProps {
 export default function WaitingRoom({ interview, onEnterLiveRoom, candidateName }: WaitingRoomProps) {
   const [countdown, setCountdown] = useState(15);
   const [interviewerStatus, setInterviewerStatus] = useState<"connecting" | "ready">("connecting");
+  const [cameraVerified, setCameraVerified] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+
+  const verifyDefaultCamera = async () => {
+    setCameraError(null);
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraVerified(false);
+      setCameraError("Camera API unavailable in this browser.");
+      return;
+    }
+    try {
+      const probe = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { ideal: "default" } },
+      });
+      const track = probe.getVideoTracks()[0];
+      const ok = Boolean(track && track.readyState === "live" && !track.muted);
+      probe.getTracks().forEach((t) => t.stop());
+      setCameraVerified(ok);
+      if (!ok) {
+        setCameraError("Default camera is muted or not streaming live frames.");
+      }
+    } catch {
+      setCameraVerified(false);
+      setCameraError("Default camera is closed, blocked, or permission denied. Enable your camera to enter.");
+    }
+  };
+
+  useEffect(() => {
+    verifyDefaultCamera();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -127,6 +157,23 @@ export default function WaitingRoom({ interview, onEnterLiveRoom, candidateName 
           </ul>
         </div>
 
+        {/* Camera Enforcement Warning */}
+        {!cameraVerified && (
+          <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 text-xs text-rose-700 dark:text-rose-300">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{cameraError || "Verifying default camera stream..."}</span>
+            </div>
+            <button
+              type="button"
+              onClick={verifyDefaultCamera}
+              className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold cursor-pointer shrink-0"
+            >
+              Retry Camera Check
+            </button>
+          </div>
+        )}
+
         {/* Enter Room Button */}
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="text-xs text-slate-400 font-mono">
@@ -135,8 +182,9 @@ export default function WaitingRoom({ interview, onEnterLiveRoom, candidateName 
 
           <button
             id="admit-now-btn"
+            disabled={!cameraVerified}
             onClick={onEnterLiveRoom}
-            className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/25 transition-all cursor-pointer flex items-center justify-center gap-2 transform hover:scale-[1.02]"
+            className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/25 transition-all cursor-pointer flex items-center justify-center gap-2 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             <span>Enter Live Interview Screen</span>
             <ArrowRight className="h-4 w-4" />

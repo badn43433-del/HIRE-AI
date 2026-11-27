@@ -19,6 +19,7 @@ interface AIProctoringHUDProps {
   sessionId?: string;
   elapsedSeconds?: number;
   onMalpracticeAlert?: (alert: SuspiciousActivity) => void;
+  onCameraStatusChange?: (healthy: boolean, reason: string | null) => void;
   trustScore: number;
   onTrustScoreChange?: (score: number) => void;
 }
@@ -30,6 +31,7 @@ export default function AIProctoringHUD({
   sessionId,
   elapsedSeconds = 0,
   onMalpracticeAlert,
+  onCameraStatusChange,
   trustScore = 96,
   onTrustScoreChange
 }: AIProctoringHUDProps) {
@@ -200,11 +202,11 @@ export default function AIProctoringHUD({
     };
   }, [trustScore, onMalpracticeAlert, onTrustScoreChange]);
 
-  // Real-time 2.5s camera frame sampling & AI Vision Proctoring analysis
+  // Real-time 2.5s camera frame sampling & AI Vision Proctoring analysis (runs even when camera is off/blocked)
   useEffect(() => {
-    if (!streamActive) return;
-
     let cancelled = false;
+    let lastFrameSignature: string | null = null;
+    let frozenFrameCount = 0;
 
     const mapGazeLabel = (dir: string, away: boolean): AIProctoringMetrics["eyeGaze"] => {
       if (!away || dir === "center") return "Center";
@@ -221,9 +223,59 @@ export default function AIProctoringHUD({
       return true;
     };
 
+    const flagCameraUnavailable = (code: string, reason: string) => {
+      onCameraStatusChange?.(false, reason);
+      setMetrics((prev) => ({
+        ...prev,
+        faceDetected: false,
+        faceConfidence: 0,
+      }));
+      if (canEmit(code)) {
+        const alert: SuspiciousActivity = {
+          id: `cam-${Date.now()}`,
+          type: "no_face",
+          timestamp: new Date().toISOString(),
+          description: reason,
+          severity: "high",
+          videoOffsetSeconds: elapsedSeconds,
+        };
+        const nextTrust = Math.max(10, trustScoreRef.current - 15);
+        setActiveAlert(`⚠️ ${reason}`);
+        setMetrics((prev) => ({
+          ...prev,
+          trustScore: nextTrust,
+          malpracticeAlerts: [alert, ...prev.malpracticeAlerts],
+        }));
+        if (onMalpracticeAlert) onMalpracticeAlert(alert);
+        if (onTrustScoreChange) onTrustScoreChange(nextTrust);
+        if (sessionId) {
+          fetch(`/api/sessions/${sessionId}/events`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(alert),
+          }).catch(() => {});
+        }
+      }
+    };
+
     const analyzeCurrentFrame = async () => {
       const video = videoRef?.current;
-      if (!video || video.readyState < 2 || video.videoWidth === 0) {
+      const srcStream = (video?.srcObject as MediaStream | null) ?? null;
+      const videoTrack = srcStream?.getVideoTracks()?.[0] ?? null;
+
+      if (!streamActive || !video || !videoTrack || videoTrack.readyState !== "live" || videoTrack.muted || !videoTrack.enabled) {
+        flagCameraUnavailable(
+          "CAMERA_OFF",
+          "Camera is turned off, muted, or disconnected during active interview."
+        );
+        return;
+      }
+
+      if (video.readyState < 2 || video.videoWidth === 0 || video.videoHeight === 0) {
+        flagCameraUnavailable(
+          "CAMERA_NO_FRAMES",
+          "Camera stream is not producing live video frames."
+        );
         return;
       }
 
@@ -236,6 +288,41 @@ export default function AIProctoringHUD({
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Detect covered/black lens or frozen video feed
+      const sample = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let lumaSum = 0;
+      let sig = "";
+      const step = 16 * 4;
+      for (let i = 0; i < sample.length; i += step) {
+        const luma = (sample[i] * 0.299 + sample[i + 1] * 0.587 + sample[i + 2] * 0.114);
+        lumaSum += luma;
+        if (sig.length < 32) sig += String.fromCharCode(65 + Math.floor(luma / 16));
+      }
+      const avgLuma = lumaSum / (sample.length / step);
+      if (avgLuma < 8) {
+        flagCameraUnavailable(
+          "CAMERA_BLACK_FRAME",
+          "Camera lens appears covered or outputting a black frame."
+        );
+        return;
+      }
+
+      if (sig === lastFrameSignature) {
+        frozenFrameCount += 1;
+        if (frozenFrameCount >= 3) {
+          flagCameraUnavailable(
+            "CAMERA_FROZEN",
+            "Camera feed appears frozen or stalled."
+          );
+          return;
+        }
+      } else {
+        frozenFrameCount = 0;
+        lastFrameSignature = sig;
+      }
+
+      onCameraStatusChange?.(true, null);
       const imageBase64 = canvas.toDataURL("image/jpeg", 0.6);
 
       const controller = new AbortController();

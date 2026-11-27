@@ -69,6 +69,23 @@ export default function DeviceDiagnostics({ onAllPassed, candidateName }: Device
 
       const videoTrack = stream.getVideoTracks()[0];
       const audioTrack = stream.getAudioTracks()[0];
+      const videoLive = Boolean(videoTrack && videoTrack.readyState === "live" && !videoTrack.muted);
+      const audioLive = Boolean(audioTrack && audioTrack.readyState === "live" && !audioTrack.muted);
+
+      if (videoTrack) {
+        videoTrack.onended = () => {
+          setDiagnostics(prev => ({
+            ...prev,
+            camera: { passed: false, label: "Camera disconnected or closed", streamActive: false }
+          }));
+        };
+        videoTrack.onmute = () => {
+          setDiagnostics(prev => ({
+            ...prev,
+            camera: { passed: false, label: "Camera muted or hardware shutter closed", streamActive: false }
+          }));
+        };
+      }
 
       // Setup audio analyzer for volume meter
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -96,22 +113,22 @@ export default function DeviceDiagnostics({ onAllPassed, candidateName }: Device
       setDiagnostics(prev => ({
         ...prev,
         camera: {
-          passed: true,
-          label: videoTrack?.label || "HD Webcam Stream Active",
-          streamActive: true
+          passed: videoLive,
+          label: videoLive ? (videoTrack?.label || "Default Camera Active") : "Camera stream inactive or muted",
+          streamActive: videoLive
         },
         microphone: {
-          passed: true,
-          label: audioTrack?.label || "Default Audio Input Active",
-          decibels: 65
+          passed: audioLive,
+          label: audioLive ? (audioTrack?.label || "Default Audio Input Active") : "Microphone stream inactive or muted",
+          decibels: audioLive ? 65 : 0
         }
       }));
     } catch (err) {
       console.warn("Camera/Mic access issue:", err);
       setDiagnostics(prev => ({
         ...prev,
-        camera: { passed: true, label: "Simulated HD Virtual Camera (Sandboxed)", streamActive: true },
-        microphone: { passed: true, label: "Simulated Digital Audio Stream", decibels: 55 }
+        camera: { passed: false, label: "Camera unavailable, blocked, or permission denied", streamActive: false },
+        microphone: { passed: false, label: "Microphone unavailable or permission denied", decibels: 0 }
       }));
     }
 

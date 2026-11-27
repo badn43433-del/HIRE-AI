@@ -182,6 +182,19 @@ export async function signOutSupabase(): Promise<void> {
   }
 }
 
+export async function signInWithGoogle(): Promise<{ error: string | null }> {
+  if (!supabaseClient) {
+    return { error: "Google OAuth requires Supabase configuration (VITE_SUPABASE_URL & VITE_SUPABASE_ANON_KEY)." };
+  }
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+    },
+  });
+  return { error: error ? error.message : null };
+}
+
 // --- API & Fallback Helper Actions ---
 
 // 1. Fetch Job Positions

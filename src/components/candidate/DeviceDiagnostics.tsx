@@ -44,6 +44,7 @@ export default function DeviceDiagnostics({ onAllPassed, candidateName }: Device
   });
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
@@ -51,12 +52,16 @@ export default function DeviceDiagnostics({ onAllPassed, candidateName }: Device
     setTesting(true);
     setSpeedProgress(10);
 
-    // 1. Camera check
+    // 1. Camera & Mic check (enforce system default devices)
     try {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: 1280, height: 720 },
-        audio: true
+        video: { deviceId: { ideal: "default" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: { deviceId: { ideal: "default" }, echoCancellation: true, noiseSuppression: true }
       });
+      streamRef.current = stream;
       setCameraStream(stream);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -153,8 +158,9 @@ export default function DeviceDiagnostics({ onAllPassed, candidateName }: Device
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       if (audioContextRef.current) audioContextRef.current.close().catch(() => {});
-      if (cameraStream) {
-        cameraStream.getTracks().forEach(t => t.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
       }
     };
   }, []);

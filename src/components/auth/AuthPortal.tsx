@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { UserRole } from "../../types";
-import { isSupabaseConnected, signInWithSupabase, signUpWithSupabase } from "../../supabaseClient";
+import { isSupabaseConnected, signInWithSupabase, signUpWithSupabase, signInWithGoogle } from "../../supabaseClient";
 import { detectBrowserExtensions, ExtensionDetectionResult } from "../../utils/extensionDetector";
 import { enterFullscreen } from "../../utils/fullscreen";
 
@@ -602,6 +602,33 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
+            </button>
+
+            <button
+              id="auth-google-btn"
+              type="button"
+              disabled={isSubmitting || extensionCheck.detected}
+              onClick={async () => {
+                setErrorText("");
+                const ext = detectBrowserExtensions();
+                setExtensionCheck(ext);
+                if (ext.detected) {
+                  setErrorText("Disable browser extensions before signing in with Google.");
+                  return;
+                }
+                localStorage.setItem("hireshield_role", selectedRole);
+                void enterFullscreen();
+                setIsSubmitting(true);
+                const { error } = await signInWithGoogle();
+                if (error) {
+                  setIsSubmitting(false);
+                  setErrorText(error);
+                }
+              }}
+              className="w-full py-2.5 bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ExternalLink className="h-3.5 w-3.5 text-sky-400" />
+              <span>Continue with Google ({selectedRole.toUpperCase()})</span>
             </button>
 
             <div className="text-center pt-2">

@@ -6,17 +6,11 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useMobileAuth } from "../../services/mobileAuthContext";
-import { UserRole } from "../../src/types";
 
 export function MobileHeader() {
-  const { session, theme, toggleTheme, switchRole, signOut } = useMobileAuth();
+  const { session, theme, toggleTheme, signOut } = useMobileAuth();
   const router = useRouter();
   const isLight = theme === "light";
-
-  const handleRoleSwitch = async (nextRole: UserRole) => {
-    await switchRole(nextRole);
-    router.replace(nextRole === "interviewer" ? "/(interviewer)" : "/(candidate)");
-  };
 
   const handleLogout = async () => {
     await signOut();
@@ -59,26 +53,6 @@ export function MobileHeader() {
           </TouchableOpacity>
         </View>
       </View>
-
-      {session && (
-        <View style={[styles.roleBar, isLight && styles.roleBarLight]}>
-          {(["candidate", "interviewer"] as UserRole[]).map((r) => {
-            const active = session.role === r;
-            return (
-              <TouchableOpacity
-                key={r}
-                onPress={() => handleRoleSwitch(r)}
-                style={[styles.rolePill, active && styles.rolePillActive]}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.rolePillText, active && styles.rolePillTextActive]}>
-                  {r.toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      )}
     </View>
   );
 }

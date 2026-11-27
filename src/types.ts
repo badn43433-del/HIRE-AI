@@ -81,7 +81,7 @@ export interface ScheduledInterview {
 
 export interface SuspiciousActivity {
   id: string;
-  type: "tab_switch" | "focus_lost" | "multiple_faces" | "no_face" | "reading_behavior" | "mobile_phone" | "copy_paste";
+  type: "tab_switch" | "focus_lost" | "multiple_faces" | "no_face" | "reading_behavior" | "mobile_phone" | "copy_paste" | "background_noise";
   timestamp: string; // ISO string
   description: string;
   severity: "low" | "medium" | "high";

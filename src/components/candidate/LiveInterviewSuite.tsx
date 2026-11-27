@@ -48,6 +48,7 @@ export default function LiveInterviewSuite({
   // Video references
   const candidateVideoRef = useRef<HTMLVideoElement>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
   const [mediaError, setMediaError] = useState<string | null>(null);
 
   // Proctoring & Trust Score
@@ -69,16 +70,29 @@ export default function LiveInterviewSuite({
   const [fileAttached, setFileAttached] = useState<string | null>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Start local camera & mic stream by default
+  // Start local camera & mic stream using system default devices
   const startDefaultMedia = () => {
     setMediaError(null);
     if (!navigator.mediaDevices?.getUserMedia) {
       setMediaError("Camera & Microphone API unavailable in this browser.");
       return;
     }
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(t => t.stop());
+      localStreamRef.current = null;
+    }
+    navigator.mediaDevices.getUserMedia({
+      video: { deviceId: { ideal: "default" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: { deviceId: { ideal: "default" }, echoCancellation: true, noiseSuppression: true }
+    })
       .then(s => {
-        s.getTracks().forEach(t => { t.enabled = true; });
+        s.getTracks().forEach(t => {
+          t.enabled = true;
+          t.onended = () => {
+            setMediaError(`Default ${t.kind === "video" ? "Camera" : "Microphone"} disconnected. Click retry to reconnect.`);
+          };
+        });
+        localStreamRef.current = s;
         setLocalStream(s);
         setMicMuted(false);
         setCameraOff(false);
@@ -88,19 +102,22 @@ export default function LiveInterviewSuite({
       })
       .catch(err => {
         console.warn("Camera/Mic permission required:", err);
-        setMediaError("Please allow Camera & Microphone access to continue.");
+        setMediaError("Please allow Default Camera & Microphone access to continue.");
       });
   };
 
   useEffect(() => {
+    sessionStorage.setItem("hireshield_active_session_id", interview.id);
     startDefaultMedia();
     return () => {
-      setLocalStream(prev => {
-        prev?.getTracks().forEach(t => t.stop());
-        return null;
-      });
+      sessionStorage.removeItem("hireshield_active_session_id");
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(t => t.stop());
+        localStreamRef.current = null;
+      }
+      setLocalStream(null);
     };
-  }, []);
+  }, [interview.id]);
 
   // Timer countdown
   useEffect(() => {
@@ -555,6 +572,7 @@ export default function LiveInterviewSuite({
               <AIProctoringHUD
                 streamActive={!cameraOff}
                 videoRef={candidateVideoRef}
+                audioStream={localStream}
                 sessionId={interview.id}
                 elapsedSeconds={45 * 60 - secondsRemaining}
                 trustScore={trustScore}

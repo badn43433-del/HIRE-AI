@@ -1,4 +1,38 @@
 {
+  "users": [
+    {
+      "id": "usr-2844d2f9",
+      "name": "E2E Registered User",
+      "email": "e2e.user.1795710271296@testdomain.com",
+      "role": "interviewer",
+      "passwordHash": "8ec490a608554eb386eed1ee84e8df05:295a84a18e3060a2bf657fa056d47662b57dce2956dab8214c31c32a6b64dfefed0b09d961b9134b4660896ab95516bd8141d98ab0bfc4eb8f94ea003a34dc26",
+      "createdAt": "2026-11-26T16:24:31.490Z"
+    },
+    {
+      "id": "usr-49d7f974",
+      "name": "E2E Registered User",
+      "email": "e2e.user.1795718141749@testdomain.com",
+      "role": "interviewer",
+      "passwordHash": "24b62835f2686b6f1358b6ace5f406b8:ccfa643fba1c78cde7e042e82f319e8e1750569352ac40dba8c366ba442143d628fdaedb03519ed707b2a205777d1b550986c3f4162ccfee6e6834ff93c3be00",
+      "createdAt": "2026-11-26T18:35:41.833Z"
+    },
+    {
+      "id": "usr-bfbc694f",
+      "name": "E2E Registered User",
+      "email": "e2e.user.1795777717657@testdomain.com",
+      "role": "interviewer",
+      "passwordHash": "a371c6603bbb7f6274a48e36b1778e98:2c4b67626e751748781365a3629551b6befb69f81f9ba50fd06666ffa5c201279defe866484c1ddb796447bcc7d14612ca20092559aaa41026dab4a026f63a37",
+      "createdAt": "2026-11-27T11:08:37.760Z"
+    },
+    {
+      "id": "usr-934ef971",
+      "name": "E2E Registered User",
+      "email": "e2e.user.1795779148964@testdomain.com",
+      "role": "interviewer",
+      "passwordHash": "f138dc7468d40987e12d0d2a6b61af48:c489f76ec10f8d2fc47a24e6034d16b083922cb0fa4a56ab66711880c28f34f138a94cbf07accd50dce481c09aa01295ba15133817c91f1848128e78c700eb98",
+      "createdAt": "2026-11-27T11:32:29.068Z"
+    }
+  ],
   "sessions": [
     {
       "id": "ses-cq5y5zrj",
@@ -51,6 +85,278 @@
       "startedAt": "2026-10-08T14:02:09.881Z",
       "chats": [],
       "supportEmergencyActive": false
+    },
+    {
+      "id": "ses-xnd908dq",
+      "candidateName": "E2E Test User",
+      "candidateEmail": "e2e@test.local",
+      "jobId": "pos-1",
+      "status": "completed",
+      "currentQuestionIndex": 0,
+      "responses": [
+        {
+          "questionText": "Explain React render optimization",
+          "answerText": "We batch WebSocket state updates with debounce queues and use React.memo and useMemo to avoid redundant tree renders.",
+          "durationSeconds": 45,
+          "transcriptText": "We batch WebSocket state updates..."
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-llzscy",
+          "type": "tab_switch",
+          "timestamp": "2026-11-25T13:16:58.169Z",
+          "description": "E2E tab switch test",
+          "severity": "medium",
+          "videoOffsetSeconds": 12
+        }
+      ],
+      "startedAt": "2026-11-25T13:16:58.156Z",
+      "chats": [
+        {
+          "id": "msg-gpl3k023",
+          "sender": "candidate",
+          "text": "E2E chat test message",
+          "timestamp": "2026-11-25T13:16:58.184Z",
+          "isTechnicalEmergency": false
+        }
+      ],
+      "supportEmergencyActive": false,
+      "completedAt": "2026-11-25T13:16:58.223Z"
+    },
+    {
+      "id": "ses-29ozcl3f",
+      "candidateName": "E2E Runner Candidate",
+      "candidateEmail": "e2e.runner@test.local",
+      "jobId": "pos-1",
+      "status": "completed",
+      "currentQuestionIndex": 0,
+      "responses": [
+        {
+          "questionText": "Explain React render optimization",
+          "answerText": "Batch WebSocket updates with debounce and memoize with useMemo and React.memo.",
+          "durationSeconds": 30,
+          "transcriptText": "Batch WebSocket updates..."
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-dv9q7j",
+          "type": "tab_switch",
+          "timestamp": "2026-11-26T15:43:01.358Z",
+          "description": "E2E Runner focus blur",
+          "severity": "low",
+          "videoOffsetSeconds": 10
+        }
+      ],
+      "startedAt": "2026-11-26T15:43:01.326Z",
+      "chats": [],
+      "supportEmergencyActive": false,
+      "completedAt": "2026-11-26T15:43:01.368Z"
+    },
+    {
+      "id": "ses-sxa1ild0",
+      "candidateName": "E2E Runner Candidate",
+      "candidateEmail": "e2e.runner@test.local",
+      "jobId": "pos-1",
+      "status": "completed",
+      "currentQuestionIndex": 0,
+      "responses": [
+        {
+          "questionText": "Explain React render optimization",
+          "answerText": "Batch WebSocket updates with debounce and memoize with useMemo and React.memo.",
+          "durationSeconds": 30,
+          "transcriptText": "Batch WebSocket updates..."
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-6fyje1",
+          "type": "tab_switch",
+          "timestamp": "2026-11-26T16:24:29.831Z",
+          "description": "E2E Runner focus blur",
+          "severity": "low",
+          "videoOffsetSeconds": 10
+        }
+      ],
+      "startedAt": "2026-11-26T16:24:29.813Z",
+      "chats": [],
+      "supportEmergencyActive": false,
+      "completedAt": "2026-11-26T16:24:30.010Z"
+    },
+    {
+      "id": "ses-gz8iona0",
+      "candidateName": "E2E Runner Candidate",
+      "candidateEmail": "e2e.runner@test.local",
+      "jobId": "pos-1",
+      "status": "completed",
+      "currentQuestionIndex": 0,
+      "responses": [
+        {
+          "questionText": "Explain React render optimization",
+          "answerText": "Batch WebSocket updates with debounce and memoize with useMemo and React.memo.",
+          "durationSeconds": 30,
+          "transcriptText": "Batch WebSocket updates..."
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-o98a68",
+          "type": "tab_switch",
+          "timestamp": "2026-11-26T18:35:41.082Z",
+          "description": "E2E Runner focus blur",
+          "severity": "low",
+          "videoOffsetSeconds": 10
+        },
+        {
+          "id": "evt-z7608c",
+          "type": "mobile_phone",
+          "code": "PHONE_DETECTED",
+          "timestamp": "2026-11-26T18:35:41.989Z",
+          "description": "Smartphone held near keyboard",
+          "severity": "high",
+          "videoOffsetSeconds": 20
+        },
+        {
+          "id": "evt-bcfe56",
+          "type": "reading_behavior",
+          "code": "LOOKING_AWAY",
+          "timestamp": "2026-11-26T18:35:42.010Z",
+          "description": "Candidate looking away from screen (gazeDirection=left).",
+          "severity": "medium",
+          "videoOffsetSeconds": 35
+        },
+        {
+          "id": "evt-pjhjv5",
+          "type": "multiple_faces",
+          "code": "MULTIPLE_PEOPLE",
+          "timestamp": "2026-11-26T18:35:42.020Z",
+          "description": "Multiple people detected in camera frame (personCount=2).",
+          "severity": "high",
+          "videoOffsetSeconds": 50
+        }
+      ],
+      "startedAt": "2026-11-26T18:35:40.379Z",
+      "chats": [],
+      "supportEmergencyActive": false,
+      "completedAt": "2026-11-26T18:35:41.120Z",
+      "trustScore": 52
+    },
+    {
+      "id": "ses-0gpfdzc9",
+      "candidateName": "E2E Runner Candidate",
+      "candidateEmail": "e2e.runner@test.local",
+      "jobId": "pos-1",
+      "status": "completed",
+      "currentQuestionIndex": 0,
+      "responses": [
+        {
+          "questionText": "Explain React render optimization",
+          "answerText": "Batch WebSocket updates with debounce and memoize with useMemo and React.memo.",
+          "durationSeconds": 30,
+          "transcriptText": "Batch WebSocket updates..."
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-w3k3ym",
+          "type": "tab_switch",
+          "timestamp": "2026-11-27T11:08:36.983Z",
+          "description": "E2E Runner focus blur",
+          "severity": "low",
+          "videoOffsetSeconds": 10
+        },
+        {
+          "id": "evt-yl8n3y",
+          "type": "mobile_phone",
+          "code": "PHONE_DETECTED",
+          "timestamp": "2026-11-27T11:08:37.863Z",
+          "description": "Smartphone held near keyboard",
+          "severity": "high",
+          "videoOffsetSeconds": 20
+        },
+        {
+          "id": "evt-g3gjwo",
+          "type": "reading_behavior",
+          "code": "LOOKING_AWAY",
+          "timestamp": "2026-11-27T11:08:37.875Z",
+          "description": "Candidate looking away from screen (gazeDirection=left).",
+          "severity": "medium",
+          "videoOffsetSeconds": 35
+        },
+        {
+          "id": "evt-28byj3",
+          "type": "multiple_faces",
+          "code": "MULTIPLE_PEOPLE",
+          "timestamp": "2026-11-27T11:08:37.883Z",
+          "description": "Multiple people detected in camera frame (personCount=2).",
+          "severity": "high",
+          "videoOffsetSeconds": 50
+        }
+      ],
+      "startedAt": "2026-11-27T11:08:36.909Z",
+      "chats": [],
+      "supportEmergencyActive": false,
+      "completedAt": "2026-11-27T11:08:36.994Z",
+      "trustScore": 52
+    },
+    {
+      "id": "ses-hc3osb7w",
+      "candidateName": "E2E Runner Candidate",
+      "candidateEmail": "e2e.runner@test.local",
+      "jobId": "pos-1",
+      "status": "completed",
+      "currentQuestionIndex": 0,
+      "responses": [
+        {
+          "questionText": "Explain React render optimization",
+          "answerText": "Batch WebSocket updates with debounce and memoize with useMemo and React.memo.",
+          "durationSeconds": 30,
+          "transcriptText": "Batch WebSocket updates..."
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-p8jnl3",
+          "type": "tab_switch",
+          "timestamp": "2026-11-27T11:32:27.207Z",
+          "description": "E2E Runner focus blur",
+          "severity": "low",
+          "videoOffsetSeconds": 10
+        },
+        {
+          "id": "evt-4h71nz",
+          "type": "mobile_phone",
+          "code": "PHONE_DETECTED",
+          "timestamp": "2026-11-27T11:32:29.231Z",
+          "description": "Smartphone held near keyboard",
+          "severity": "high",
+          "videoOffsetSeconds": 20
+        },
+        {
+          "id": "evt-95037o",
+          "type": "reading_behavior",
+          "code": "LOOKING_AWAY",
+          "timestamp": "2026-11-27T11:32:29.242Z",
+          "description": "Candidate looking away from screen (gazeDirection=left).",
+          "severity": "medium",
+          "videoOffsetSeconds": 35
+        },
+        {
+          "id": "evt-982mmh",
+          "type": "multiple_faces",
+          "code": "MULTIPLE_PEOPLE",
+          "timestamp": "2026-11-27T11:32:29.252Z",
+          "description": "Multiple people detected in camera frame (personCount=2).",
+          "severity": "high",
+          "videoOffsetSeconds": 50
+        }
+      ],
+      "startedAt": "2026-11-27T11:32:27.191Z",
+      "chats": [],
+      "supportEmergencyActive": false,
+      "completedAt": "2026-11-27T11:32:28.131Z",
+      "trustScore": 52
     }
   ],
   "reports": [
@@ -65,7 +371,7 @@
       "communicationScore": 88,
       "confidenceScore": 90,
       "suspicionScore": 8,
-      "finalRank": 1,
+      "finalRank": 2,
       "shortlistStatus": "SHORTLISTED",
       "semanticRelevance": 95,
       "qualitativeNotes": {
@@ -107,7 +413,7 @@
       "communicationScore": 89,
       "confidenceScore": 91,
       "suspicionScore": 12,
-      "finalRank": 2,
+      "finalRank": 3,
       "shortlistStatus": "SHORTLISTED",
       "semanticRelevance": 96,
       "qualitativeNotes": {
@@ -152,7 +458,7 @@
       "communicationScore": 92,
       "confidenceScore": 95,
       "suspicionScore": 0,
-      "finalRank": 3,
+      "finalRank": 1,
       "shortlistStatus": "SHORTLISTED",
       "semanticRelevance": 93,
       "qualitativeNotes": {
@@ -188,7 +494,7 @@
       "communicationScore": 80,
       "confidenceScore": 75,
       "suspicionScore": 25,
-      "finalRank": 4,
+      "finalRank": 10,
       "shortlistStatus": "STANDBY",
       "semanticRelevance": 82,
       "qualitativeNotes": {
@@ -241,7 +547,7 @@
       "communicationScore": 78,
       "confidenceScore": 81,
       "suspicionScore": 55,
-      "finalRank": 5,
+      "finalRank": 11,
       "shortlistStatus": "STANDBY",
       "semanticRelevance": 79,
       "qualitativeNotes": {
@@ -294,7 +600,7 @@
       "communicationScore": 70,
       "confidenceScore": 55,
       "suspicionScore": 85,
-      "finalRank": 6,
+      "finalRank": 12,
       "shortlistStatus": "REJECTED",
       "semanticRelevance": 61,
       "qualitativeNotes": {
@@ -342,6 +648,302 @@
           "severity": "high"
         }
       ]
+    },
+    {
+      "id": "rep-4wbdj70j",
+      "candidateId": "ses-xnd908dq",
+      "candidateName": "E2E Test User",
+      "candidateEmail": "e2e@test.local",
+      "jobPositionId": "pos-1",
+      "jobTitle": "Senior Frontend UI Architect",
+      "technicalScore": 95,
+      "communicationScore": 85,
+      "confidenceScore": 76,
+      "suspicionScore": 25,
+      "finalRank": 7,
+      "shortlistStatus": "SHORTLISTED",
+      "semanticRelevance": 91,
+      "qualitativeNotes": {
+        "strengths": [
+          "Demonstrates structured conceptual thinking during system architectural discussion.",
+          "Good articulation of core React hook dependencies and performance mechanics.",
+          "Understands standard browser sandboxing capabilities and CSP defenses."
+        ],
+        "weaknesses": [
+          "Pacing speed could be regulated. Candidate spoke slightly fast under technical evaluation pressure.",
+          "Could expand more on manual testing protocols and concrete multi-layered JWT rotation details."
+        ],
+        "integritySummary": "Security systems registered 1 integrity flags (including tab focus blur actions). Behavior was logged on the timeline.",
+        "overallRecommendation": "Strong technical candidate demonstrating clear capability inside designated requirements. Recommend proceeding to technical round."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "Explain React render optimization",
+          "candidateAnswer": "We batch WebSocket state updates with debounce queues and use React.memo and useMemo to avoid redundant tree renders.",
+          "aiRationallyScored": "Answer demonstrates good comprehension of basic terms. Specific technical depth is evaluated at 87% matching expected Enterprise benchmarks.",
+          "score": 87
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-llzscy",
+          "type": "tab_switch",
+          "timestamp": "2026-11-25T13:16:58.169Z",
+          "description": "E2E tab switch test",
+          "severity": "medium",
+          "videoOffsetSeconds": 12
+        }
+      ],
+      "chats": [
+        {
+          "id": "msg-gpl3k023",
+          "sender": "candidate",
+          "text": "E2E chat test message",
+          "timestamp": "2026-11-25T13:16:58.184Z",
+          "isTechnicalEmergency": false
+        }
+      ],
+      "supportEmergencyActive": false
+    },
+    {
+      "id": "rep-oem8gw3c",
+      "candidateId": "ses-29ozcl3f",
+      "candidateName": "E2E Runner Candidate",
+      "candidateEmail": "e2e.runner@test.local",
+      "jobPositionId": "pos-1",
+      "jobTitle": "Senior Frontend UI Architect",
+      "technicalScore": 95,
+      "communicationScore": 85,
+      "confidenceScore": 80,
+      "suspicionScore": 25,
+      "finalRank": 6,
+      "shortlistStatus": "SHORTLISTED",
+      "semanticRelevance": 91,
+      "qualitativeNotes": {
+        "strengths": [
+          "Demonstrates structured conceptual thinking during system architectural discussion.",
+          "Good articulation of core React hook dependencies and performance mechanics.",
+          "Understands standard browser sandboxing capabilities and CSP defenses."
+        ],
+        "weaknesses": [
+          "Pacing speed could be regulated. Candidate spoke slightly fast under technical evaluation pressure.",
+          "Could expand more on manual testing protocols and concrete multi-layered JWT rotation details."
+        ],
+        "integritySummary": "Security systems registered 1 integrity flags (including tab focus blur actions). Behavior was logged on the timeline.",
+        "overallRecommendation": "Strong technical candidate demonstrating clear capability inside designated requirements. Recommend proceeding to technical round."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "Explain React render optimization",
+          "candidateAnswer": "Batch WebSocket updates with debounce and memoize with useMemo and React.memo.",
+          "aiRationallyScored": "Answer demonstrates good comprehension of basic terms. Specific technical depth is evaluated at 72% matching expected Enterprise benchmarks.",
+          "score": 72
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-dv9q7j",
+          "type": "tab_switch",
+          "timestamp": "2026-11-26T15:43:01.358Z",
+          "description": "E2E Runner focus blur",
+          "severity": "low",
+          "videoOffsetSeconds": 10
+        }
+      ],
+      "chats": [],
+      "supportEmergencyActive": false
+    },
+    {
+      "id": "rep-4gf2yjul",
+      "candidateId": "ses-sxa1ild0",
+      "candidateName": "E2E Runner Candidate",
+      "candidateEmail": "e2e.runner@test.local",
+      "jobPositionId": "pos-1",
+      "jobTitle": "Senior Frontend UI Architect",
+      "technicalScore": 95,
+      "communicationScore": 88,
+      "confidenceScore": 77,
+      "suspicionScore": 25,
+      "finalRank": 5,
+      "shortlistStatus": "SHORTLISTED",
+      "semanticRelevance": 91,
+      "qualitativeNotes": {
+        "strengths": [
+          "Demonstrates structured conceptual thinking during system architectural discussion.",
+          "Good articulation of core React hook dependencies and performance mechanics.",
+          "Understands standard browser sandboxing capabilities and CSP defenses."
+        ],
+        "weaknesses": [
+          "Pacing speed could be regulated. Candidate spoke slightly fast under technical evaluation pressure.",
+          "Could expand more on manual testing protocols and concrete multi-layered JWT rotation details."
+        ],
+        "integritySummary": "Security systems registered 1 integrity flags (including tab focus blur actions). Behavior was logged on the timeline.",
+        "overallRecommendation": "Strong technical candidate demonstrating clear capability inside designated requirements. Recommend proceeding to technical round."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "Explain React render optimization",
+          "candidateAnswer": "Batch WebSocket updates with debounce and memoize with useMemo and React.memo.",
+          "aiRationallyScored": "Answer demonstrates good comprehension of basic terms. Specific technical depth is evaluated at 72% matching expected Enterprise benchmarks.",
+          "score": 72
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-6fyje1",
+          "type": "tab_switch",
+          "timestamp": "2026-11-26T16:24:29.831Z",
+          "description": "E2E Runner focus blur",
+          "severity": "low",
+          "videoOffsetSeconds": 10
+        }
+      ],
+      "chats": [],
+      "supportEmergencyActive": false
+    },
+    {
+      "id": "rep-07ai208o",
+      "candidateId": "ses-gz8iona0",
+      "candidateName": "E2E Runner Candidate",
+      "candidateEmail": "e2e.runner@test.local",
+      "jobPositionId": "pos-1",
+      "jobTitle": "Senior Frontend UI Architect",
+      "technicalScore": 95,
+      "communicationScore": 88,
+      "confidenceScore": 69,
+      "suspicionScore": 25,
+      "finalRank": 8,
+      "shortlistStatus": "SHORTLISTED",
+      "semanticRelevance": 91,
+      "qualitativeNotes": {
+        "strengths": [
+          "Demonstrates structured conceptual thinking during system architectural discussion.",
+          "Good articulation of core React hook dependencies and performance mechanics.",
+          "Understands standard browser sandboxing capabilities and CSP defenses."
+        ],
+        "weaknesses": [
+          "Pacing speed could be regulated. Candidate spoke slightly fast under technical evaluation pressure.",
+          "Could expand more on manual testing protocols and concrete multi-layered JWT rotation details."
+        ],
+        "integritySummary": "Security systems registered 1 integrity flags (including tab focus blur actions). Behavior was logged on the timeline.",
+        "overallRecommendation": "Strong technical candidate demonstrating clear capability inside designated requirements. Recommend proceeding to technical round."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "Explain React render optimization",
+          "candidateAnswer": "Batch WebSocket updates with debounce and memoize with useMemo and React.memo.",
+          "aiRationallyScored": "Answer demonstrates good comprehension of basic terms. Specific technical depth is evaluated at 72% matching expected Enterprise benchmarks.",
+          "score": 72
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-o98a68",
+          "type": "tab_switch",
+          "timestamp": "2026-11-26T18:35:41.082Z",
+          "description": "E2E Runner focus blur",
+          "severity": "low",
+          "videoOffsetSeconds": 10
+        }
+      ],
+      "chats": [],
+      "supportEmergencyActive": false
+    },
+    {
+      "id": "rep-zsrfipj3",
+      "candidateId": "ses-0gpfdzc9",
+      "candidateName": "E2E Runner Candidate",
+      "candidateEmail": "e2e.runner@test.local",
+      "jobPositionId": "pos-1",
+      "jobTitle": "Senior Frontend UI Architect",
+      "technicalScore": 95,
+      "communicationScore": 71,
+      "confidenceScore": 75,
+      "suspicionScore": 25,
+      "finalRank": 9,
+      "shortlistStatus": "SHORTLISTED",
+      "semanticRelevance": 91,
+      "qualitativeNotes": {
+        "strengths": [
+          "Demonstrates structured conceptual thinking during system architectural discussion.",
+          "Good articulation of core React hook dependencies and performance mechanics.",
+          "Understands standard browser sandboxing capabilities and CSP defenses."
+        ],
+        "weaknesses": [
+          "Pacing speed could be regulated. Candidate spoke slightly fast under technical evaluation pressure.",
+          "Could expand more on manual testing protocols and concrete multi-layered JWT rotation details."
+        ],
+        "integritySummary": "Security systems registered 1 integrity flags (including tab focus blur actions). Behavior was logged on the timeline.",
+        "overallRecommendation": "Strong technical candidate demonstrating clear capability inside designated requirements. Recommend proceeding to technical round."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "Explain React render optimization",
+          "candidateAnswer": "Batch WebSocket updates with debounce and memoize with useMemo and React.memo.",
+          "aiRationallyScored": "Answer demonstrates good comprehension of basic terms. Specific technical depth is evaluated at 72% matching expected Enterprise benchmarks.",
+          "score": 72
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-w3k3ym",
+          "type": "tab_switch",
+          "timestamp": "2026-11-27T11:08:36.983Z",
+          "description": "E2E Runner focus blur",
+          "severity": "low",
+          "videoOffsetSeconds": 10
+        }
+      ],
+      "chats": [],
+      "supportEmergencyActive": false
+    },
+    {
+      "id": "rep-v9cta9cb",
+      "candidateId": "ses-hc3osb7w",
+      "candidateName": "E2E Runner Candidate",
+      "candidateEmail": "e2e.runner@test.local",
+      "jobPositionId": "pos-1",
+      "jobTitle": "Senior Frontend UI Architect",
+      "technicalScore": 95,
+      "communicationScore": 85,
+      "confidenceScore": 82,
+      "suspicionScore": 25,
+      "finalRank": 4,
+      "shortlistStatus": "SHORTLISTED",
+      "semanticRelevance": 91,
+      "qualitativeNotes": {
+        "strengths": [
+          "Demonstrates structured conceptual thinking during system architectural discussion.",
+          "Good articulation of core React hook dependencies and performance mechanics.",
+          "Understands standard browser sandboxing capabilities and CSP defenses."
+        ],
+        "weaknesses": [
+          "Pacing speed could be regulated. Candidate spoke slightly fast under technical evaluation pressure.",
+          "Could expand more on manual testing protocols and concrete multi-layered JWT rotation details."
+        ],
+        "integritySummary": "Security systems registered 1 integrity flags (including tab focus blur actions). Behavior was logged on the timeline.",
+        "overallRecommendation": "Strong technical candidate demonstrating clear capability inside designated requirements. Recommend proceeding to technical round."
+      },
+      "answersEvaluated": [
+        {
+          "questionText": "Explain React render optimization",
+          "candidateAnswer": "Batch WebSocket updates with debounce and memoize with useMemo and React.memo.",
+          "aiRationallyScored": "Answer demonstrates good comprehension of basic terms. Specific technical depth is evaluated at 72% matching expected Enterprise benchmarks.",
+          "score": 72
+        }
+      ],
+      "suspiciousActivities": [
+        {
+          "id": "evt-p8jnl3",
+          "type": "tab_switch",
+          "timestamp": "2026-11-27T11:32:27.207Z",
+          "description": "E2E Runner focus blur",
+          "severity": "low",
+          "videoOffsetSeconds": 10
+        }
+      ],
+      "chats": [],
+      "supportEmergencyActive": false
     }
   ]
 }

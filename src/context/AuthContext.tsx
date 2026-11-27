@@ -20,7 +20,6 @@ interface AuthContextValue {
   userEmail: string;
   loginSession: (name: string, email: string, role: UserRole, id?: string) => void;
   logout: () => Promise<void>;
-  switchRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -125,18 +124,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLocalLoggedIn(false);
   };
 
-  const switchRole = (newRole: UserRole) => {
-    setUserRole(newRole);
-    localStorage.setItem("hireshield_role", newRole);
-    if (newRole === "candidate") {
-      setUserName("Sarah Jenkins");
-      setUserEmail("sarah.jenkins@enterprise-recruit.com");
-    } else {
-      setUserName("Marcus Vance");
-      setUserEmail("marcus.vance@techcorp.io");
-    }
-  };
-
   const isAuthenticated = Boolean(session?.user) || localLoggedIn;
 
   return (
@@ -153,7 +140,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userEmail,
         loginSession,
         logout,
-        switchRole,
       }}
     >
       {children}

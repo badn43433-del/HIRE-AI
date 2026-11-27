@@ -164,7 +164,7 @@ ALTER TABLE public.candidate_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.scheduled_interviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.suspicious_activities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE npx --yes localtunnel --port 3000public.suspicious_activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_audit_logs ENABLE ROW LEVEL SECURITY;

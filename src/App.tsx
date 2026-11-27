@@ -36,7 +36,6 @@ export default function App() {
     userEmail,
     loginSession,
     logout,
-    switchRole,
   } = useAuth();
 
   const navigate = useNavigate();
@@ -73,6 +72,19 @@ export default function App() {
     const handleFsChange = () => {
       if (!getFullscreenElement() && !isAutomated && !inRestrictedIframe && isFullscreenSupported()) {
         setFullscreenLock(true);
+        const activeSessionId = sessionStorage.getItem("hireshield_active_session_id");
+        if (activeSessionId) {
+          fetch(`/api/sessions/${activeSessionId}/events`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "focus_lost",
+              severity: "high",
+              description: "Candidate exited Fullscreen Mode (Esc/F11) during active session",
+              timestamp: new Date().toISOString(),
+            }),
+          }).catch(() => {});
+        }
       } else if (getFullscreenElement()) {
         setFullscreenLock(false);
       }
@@ -107,14 +119,10 @@ export default function App() {
 
   const handleLogout = async () => {
     setFullscreenLock(false);
+    sessionStorage.removeItem("hireshield_active_session_id");
     await exitFullscreenSafe();
     await logout();
     navigate("/login", { replace: true });
-  };
-
-  const handleSwitchRole = (newRole: UserRole) => {
-    switchRole(newRole);
-    navigate(`/${newRole}`, { replace: true });
   };
 
   if (isLoading) {
@@ -207,24 +215,14 @@ export default function App() {
             </div>
           </div>
 
-          {/* Quick Role Switcher Pill & Navigation */}
+          {/* Role Badge & Navigation */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Direct Role Switcher */}
-            <div className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
-              {(["candidate", "interviewer"] as UserRole[]).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => handleSwitchRole(r)}
-                  className={`px-2.5 py-1 rounded-lg font-bold capitalize transition-all cursor-pointer ${
-                    userRole === r && !isReportsPage
-                      ? "bg-indigo-600 text-white shadow-xs"
-                      : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
+            <span
+              className="hidden md:inline-flex items-center px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400"
+              title="Role is locked for this authenticated session"
+            >
+              {userRole}
+            </span>
 
             {/* Global Reports Hub Nav button */}
             <button
@@ -272,23 +270,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* Mobile Role Switcher (< md) */}
-      <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-2 flex items-center justify-center gap-2">
-        {(["candidate", "interviewer"] as UserRole[]).map((r) => (
-          <button
-            key={r}
-            onClick={() => handleSwitchRole(r)}
-            className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
-              userRole === r && !isReportsPage
-                ? "bg-indigo-600 text-white shadow-xs"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
-            }`}
-          >
-            {r}
-          </button>
-        ))}
-      </div>
-
       {/* Protected Routes */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 relative z-10">
         <Routes>
@@ -317,7 +298,7 @@ export default function App() {
                   interviewerName={userName}
                   interviewerEmail={userEmail}
                   reports={reports}
-                  onStartLiveInterview={() => handleSwitchRole("candidate")}
+                  onStartLiveInterview={() => navigate("/reports")}
                 />
               </ProtectedRoute>
             }

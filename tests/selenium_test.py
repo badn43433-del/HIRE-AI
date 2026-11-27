@@ -63,12 +63,16 @@ def main() -> int:
             return "AI Chat widget opened and closed cleanly"
 
         def tc_switch_to_interviewer():
-            interviewer_btn = wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//button[normalize-space()='interviewer']"))
-            )
-            interviewer_btn.click()
+            logout_btn = wait.until(EC.element_to_be_clickable((By.ID, "header-logout-btn")))
+            logout_btn.click()
+            interviewer_role_btn = wait.until(EC.element_to_be_clickable((By.ID, "role-btn-interviewer")))
+            interviewer_role_btn.click()
+            submit_btn = wait.until(EC.element_to_be_clickable((By.ID, "auth-login-submit-btn")))
+            submit_btn.click()
+            otp_btn = wait.until(EC.element_to_be_clickable((By.ID, "otp-verify-submit-btn")))
+            otp_btn.click()
             wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(),'Marcus Vance')]")))
-            return "Switched to Interviewer Portal (Marcus Vance)"
+            return "Strict Role Lock verified: re-authenticated as Interviewer (Marcus Vance)"
 
         recorder.run_case("TC-SEL-001: Landing Page & Branding", tc_landing_page)
         recorder.run_case("TC-SEL-002: Role Selector (No Admin)", tc_no_admin_role)

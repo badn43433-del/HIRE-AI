@@ -15,6 +15,7 @@ import { AIProctoringMetrics, SuspiciousActivity } from "../../types";
 interface AIProctoringHUDProps {
   streamActive: boolean;
   videoRef?: React.RefObject<HTMLVideoElement | null>;
+  audioStream?: MediaStream | null;
   sessionId?: string;
   elapsedSeconds?: number;
   onMalpracticeAlert?: (alert: SuspiciousActivity) => void;
@@ -25,6 +26,7 @@ interface AIProctoringHUDProps {
 export default function AIProctoringHUD({
   streamActive,
   videoRef,
+  audioStream,
   sessionId,
   elapsedSeconds = 0,
   onMalpracticeAlert,
@@ -55,6 +57,97 @@ export default function AIProctoringHUD({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const trustScoreRef = useRef<number>(trustScore);
   trustScoreRef.current = trustScore;
+
+  // Real-time ambient / side sound monitoring via Web Audio API AnalyserNode
+  useEffect(() => {
+    if (!audioStream || audioStream.getAudioTracks().length === 0) return;
+
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+
+    let audioCtx: AudioContext | null = null;
+    let source: MediaStreamAudioSourceNode | null = null;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    let highNoiseSince: number | null = null;
+
+    try {
+      audioCtx = new AudioCtx();
+      source = audioCtx.createMediaStreamSource(audioStream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      intervalId = setInterval(() => {
+        analyser.getByteFrequencyData(dataArray);
+        const avg = dataArray.reduce((sum, v) => sum + v, 0) / dataArray.length;
+        // Scale 0-255 average amplitude into approximate 25-95 dB range
+        const estimatedDb = Math.min(95, Math.max(25, Math.round(25 + (avg / 140) * 70)));
+
+        setMetrics((prev) => ({
+          ...prev,
+          backgroundNoiseDecibels: estimatedDb,
+          voiceActivity: estimatedDb > 38,
+        }));
+
+        const now = Date.now();
+        if (estimatedDb >= 68) {
+          if (!highNoiseSince) {
+            highNoiseSince = now;
+          } else if (now - highNoiseSince >= 2000) {
+            const lastAt = cooldownMapRef.current["BACKGROUND_NOISE"] || 0;
+            if (now - lastAt >= 6000) {
+              cooldownMapRef.current["BACKGROUND_NOISE"] = now;
+              highNoiseSince = null;
+
+              const noiseAlert: SuspiciousActivity = {
+                id: `noise-${now}`,
+                type: "background_noise",
+                timestamp: new Date().toISOString(),
+                description: `Sustained ambient/side noise detected (${estimatedDb} dB >= 68 dB for > 2s).`,
+                severity: "medium",
+                videoOffsetSeconds: elapsedSeconds,
+              };
+              const nextTrust = Math.max(10, trustScoreRef.current - 8);
+              setActiveAlert(`⚠️ High ambient noise detected (${estimatedDb} dB)!`);
+              setMetrics((prev) => ({
+                ...prev,
+                trustScore: nextTrust,
+                malpracticeAlerts: [noiseAlert, ...prev.malpracticeAlerts],
+              }));
+              if (onMalpracticeAlert) onMalpracticeAlert(noiseAlert);
+              if (onTrustScoreChange) onTrustScoreChange(nextTrust);
+              if (sessionId) {
+                fetch(`/api/sessions/${sessionId}/events`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(noiseAlert),
+                }).catch(() => {});
+              }
+              setTimeout(() => setActiveAlert(null), 4000);
+            }
+          }
+        } else {
+          highNoiseSince = null;
+        }
+      }, 400);
+    } catch {
+      // Ignore Web Audio errors on restricted headless/browser environments
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      if (source) {
+        try {
+          source.disconnect();
+        } catch {}
+      }
+      if (audioCtx && audioCtx.state !== "closed") {
+        audioCtx.close().catch(() => {});
+      }
+    };
+  }, [audioStream, sessionId]);
 
   // Monitor window blur & tab-switching
   useEffect(() => {

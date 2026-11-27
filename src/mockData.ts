@@ -146,8 +146,12 @@ export class TelemetryQueue {
   constructor(private flushIntervalMs: number = 200) {}
 
   push(event: MalpracticeSignal): void {
-    // TODO: Buffer event, guarantee urgent events bubble up
-    this.buffer.push(event);
+    // Sort-on-insert: high-severity events surface at the front of the queue
+    if (event.severity === "high") {
+      this.buffer.unshift(event);
+    } else {
+      this.buffer.push(event);
+    }
   }
 
   flush(): MalpracticeSignal[] {

@@ -26,6 +26,7 @@ import { CrossPlatformCodeEditor } from "../../components/crossplatform/CrossPla
 const INTERVIEW_DURATION_SECONDS = 45 * 60; // 45 minutes
 
 export default function CandidateLiveRoom() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"code" | "hud" | "chat">("code");
   const [micMuted, setMicMuted] = useState(false);
   const [cameraOff, setCameraOff] = useState(false);
@@ -47,13 +48,15 @@ export default function CandidateLiveRoom() {
 
   // Live countdown timer
   const [secondsRemaining, setSecondsRemaining] = useState(INTERVIEW_DURATION_SECONDS);
-  const timerRef = useRef<any>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [sessionEnded, setSessionEnded] = useState(false);
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
       setSecondsRemaining(prev => {
         if (prev <= 1) {
-          clearInterval(timerRef.current);
+          if (timerRef.current) clearInterval(timerRef.current);
+          setSessionEnded(true);
           return 0;
         }
         return prev - 1;
@@ -111,6 +114,34 @@ export default function CandidateLiveRoom() {
               <TouchableOpacity onPress={() => setProctorWarning(null)}>
                 <Text style={styles.proctorDismissText}>Dismiss</Text>
               </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Camera-Off Proctoring Warning */}
+          {cameraOff && (
+            <View style={[styles.proctorAlertBanner, { backgroundColor: "#7f1d1d" }]}>
+              <Text style={styles.proctorAlertText}>⚠️ Camera is OFF — Active camera is required during proctored interview. Turn camera back on to continue.</Text>
+              <TouchableOpacity onPress={() => setCameraOff(false)}>
+                <Text style={styles.proctorDismissText}>Turn On</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Session-Ended Screen */}
+          {sessionEnded && (
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 24, gap: 16 }}>
+              <Text style={{ color: "#f8fafc", fontSize: 22, fontWeight: "800", textAlign: "center" }}>
+                🎯 Assessment Concluded
+              </Text>
+              <Text style={{ color: "#94a3b8", fontSize: 13, textAlign: "center" }}>
+                Your session has ended. The AI Evaluation Scorecard is being generated.
+              </Text>
+              <CrossButton
+                title="Return to Dashboard"
+                variant="primary"
+                onPress={() => router.replace("/(candidate)")}
+                style={{ marginTop: 8 }}
+              />
             </View>
           )}
 
@@ -179,7 +210,10 @@ export default function CandidateLiveRoom() {
             <CrossButton
               title="End"
               variant="danger"
-              onPress={() => alert("Assessment complete. Evaluation scorecard generated.")}
+              onPress={() => {
+                if (timerRef.current) clearInterval(timerRef.current);
+                setSessionEnded(true);
+              }}
               style={styles.controlBtn}
             />
           </View>

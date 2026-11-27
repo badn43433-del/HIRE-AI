@@ -144,9 +144,13 @@ export default function InterviewerDashboard() {
             </View>
 
             <CrossButton
-              title="Sign & Submit Evaluation"
+              title="Sign &amp; Submit Evaluation"
               variant="success"
-              onPress={() => alert("Evaluation submitted and cryptographically signed.")}
+              onPress={() => {
+                const total = Object.values(rubricScores).reduce((a, b) => a + b, 0);
+                const pct = Math.round((total / (Object.keys(rubricScores).length * 5)) * 100);
+                alert(`✅ Evaluation submitted (Score: ${pct}%). Cryptographically signed and logged.`);
+              }}
               style={styles.submitBtn}
             />
           </CrossCard>

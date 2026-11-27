@@ -4,10 +4,10 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
-import { 
-  Mic, MicOff, Video as VideoIcon, VideoOff, Monitor, 
-  Hand, Maximize, Minimize, PhoneOff, MessageSquare, 
-  Code2, PenTool, BrainCircuit, ShieldAlert, ShieldCheck, Wifi, 
+import {
+  Mic, MicOff, Video as VideoIcon, VideoOff, Monitor,
+  Hand, Maximize, Minimize, PhoneOff, MessageSquare,
+  Code2, PenTool, BrainCircuit, ShieldAlert, ShieldCheck, Wifi,
   Clock, Paperclip, Send, Sparkles, AlertCircle, CheckCircle2,
   HelpCircle, UserCheck, Eye, Layers
 } from "lucide-react";
@@ -161,10 +161,10 @@ export default function LiveInterviewSuite({
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
+      document.documentElement.requestFullscreen().catch(() => { });
       setIsFullscreen(true);
     } else {
-      document.exitFullscreen().catch(() => {});
+      document.exitFullscreen().catch(() => { });
       setIsFullscreen(false);
     }
   };
@@ -373,11 +373,10 @@ export default function LiveInterviewSuite({
           <div className="flex items-center justify-center gap-2 p-2 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-xs">
             <button
               onClick={toggleMic}
-              className={`p-2.5 rounded-xl text-xs cursor-pointer transition-all ${
-                micMuted 
-                  ? "bg-rose-500 text-white shadow-xs" 
-                  : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200"
-              }`}
+              className={`p-2.5 rounded-xl text-xs cursor-pointer transition-all ${micMuted
+                ? "bg-rose-500 text-white shadow-xs"
+                : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200"
+                }`}
               title={micMuted ? "Unmute Mic" : "Mute Mic"}
             >
               {micMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -385,11 +384,10 @@ export default function LiveInterviewSuite({
 
             <button
               onClick={toggleCamera}
-              className={`p-2.5 rounded-xl text-xs cursor-pointer transition-all ${
-                cameraOff 
-                  ? "bg-rose-500 text-white shadow-xs" 
-                  : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200"
-              }`}
+              className={`p-2.5 rounded-xl text-xs cursor-pointer transition-all ${cameraOff
+                ? "bg-rose-500 text-white shadow-xs"
+                : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200"
+                }`}
               title={cameraOff ? "Turn Camera On" : "Turn Camera Off"}
             >
               {cameraOff ? <VideoOff className="h-4 w-4" /> : <VideoIcon className="h-4 w-4" />}
@@ -397,11 +395,10 @@ export default function LiveInterviewSuite({
 
             <button
               onClick={toggleScreenShare}
-              className={`p-2.5 rounded-xl text-xs cursor-pointer transition-all ${
-                isScreenSharing 
-                  ? "bg-indigo-600 text-white shadow-xs" 
-                  : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200"
-              }`}
+              className={`p-2.5 rounded-xl text-xs cursor-pointer transition-all ${isScreenSharing
+                ? "bg-indigo-600 text-white shadow-xs"
+                : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200"
+                }`}
               title="Share Screen"
             >
               <Monitor className="h-4 w-4" />
@@ -409,11 +406,10 @@ export default function LiveInterviewSuite({
 
             <button
               onClick={() => setHandRaised(!handRaised)}
-              className={`p-2.5 rounded-xl text-xs cursor-pointer transition-all ${
-                handRaised 
-                  ? "bg-amber-500 text-slate-950 font-bold shadow-xs" 
-                  : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200"
-              }`}
+              className={`p-2.5 rounded-xl text-xs cursor-pointer transition-all ${handRaised
+                ? "bg-amber-500 text-slate-950 font-bold shadow-xs"
+                : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200"
+                }`}
               title="Raise Hand"
             >
               <Hand className="h-4 w-4" />
@@ -436,11 +432,10 @@ export default function LiveInterviewSuite({
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setActiveWorkspaceTab("coding")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  activeWorkspaceTab === "coding"
-                    ? "bg-indigo-600 text-white shadow-xs"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                }`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeWorkspaceTab === "coding"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  }`}
               >
                 <Code2 className="h-3.5 w-3.5" />
                 <span>Coding Editor</span>
@@ -448,11 +443,10 @@ export default function LiveInterviewSuite({
 
               <button
                 onClick={() => setActiveWorkspaceTab("whiteboard")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  activeWorkspaceTab === "whiteboard"
-                    ? "bg-indigo-600 text-white shadow-xs"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                }`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeWorkspaceTab === "whiteboard"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  }`}
               >
                 <PenTool className="h-3.5 w-3.5" />
                 <span>Whiteboard</span>
@@ -460,11 +454,10 @@ export default function LiveInterviewSuite({
 
               <button
                 onClick={() => setActiveWorkspaceTab("chat")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 relative ${
-                  activeWorkspaceTab === "chat"
-                    ? "bg-indigo-600 text-white shadow-xs"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                }`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 relative ${activeWorkspaceTab === "chat"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  }`}
               >
                 <MessageSquare className="h-3.5 w-3.5" />
                 <span>Live Chat</span>
@@ -473,11 +466,10 @@ export default function LiveInterviewSuite({
 
               <button
                 onClick={() => setActiveWorkspaceTab("ai_hud")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  activeWorkspaceTab === "ai_hud"
-                    ? "bg-indigo-600 text-white shadow-xs"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                }`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeWorkspaceTab === "ai_hud"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  }`}
               >
                 <BrainCircuit className="h-3.5 w-3.5" />
                 <span>AI Proctor HUD</span>
@@ -504,19 +496,18 @@ export default function LiveInterviewSuite({
                 {/* Chat Message Stream */}
                 <div className="flex-1 p-4 space-y-3 overflow-y-auto">
                   {chats.map((c) => (
-                    <div 
-                      key={c.id} 
+                    <div
+                      key={c.id}
                       className={`flex flex-col ${c.sender === "candidate" ? "items-end" : "items-start"}`}
                     >
                       <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono mb-1">
                         <span className="font-bold text-slate-600 dark:text-slate-300">{c.senderName || c.sender}</span>
                         <span>• {c.timestamp}</span>
                       </div>
-                      <div className={`p-3 rounded-2xl max-w-md text-xs leading-relaxed ${
-                        c.sender === "candidate"
-                          ? "bg-indigo-600 text-white rounded-br-none shadow-xs"
-                          : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none border border-slate-200 dark:border-slate-700 shadow-xs"
-                      }`}>
+                      <div className={`p-3 rounded-2xl max-w-md text-xs leading-relaxed ${c.sender === "candidate"
+                        ? "bg-indigo-600 text-white rounded-br-none shadow-xs"
+                        : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none border border-slate-200 dark:border-slate-700 shadow-xs"
+                        }`}>
                         {c.text}
                         {c.attachmentName && (
                           <div className="mt-2 p-1.5 bg-black/20 rounded-lg text-[10px] font-mono flex items-center gap-1">
@@ -534,13 +525,13 @@ export default function LiveInterviewSuite({
                 <form onSubmit={handleSendMessage} className="p-3 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center gap-2">
                   <label className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
                     <Paperclip className="h-4 w-4" />
-                    <input 
-                      type="file" 
-                      className="hidden" 
+                    <input
+                      type="file"
+                      className="hidden"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) setFileAttached(file.name);
-                      }} 
+                      }}
                     />
                   </label>
 

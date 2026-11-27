@@ -83,7 +83,7 @@ export default function App() {
               description: "Candidate exited Fullscreen Mode (Esc/F11) during active session",
               timestamp: new Date().toISOString(),
             }),
-          }).catch(() => {});
+          }).catch(() => { });
         }
       } else if (getFullscreenElement()) {
         setFullscreenLock(false);
@@ -227,11 +227,10 @@ export default function App() {
             {/* Global Reports Hub Nav button */}
             <button
               onClick={() => navigate(isReportsPage ? `/${userRole}` : "/reports")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${
-                isReportsPage
-                  ? "bg-indigo-600 text-white border-indigo-600"
-                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750"
-              }`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${isReportsPage
+                ? "bg-indigo-600 text-white border-indigo-600"
+                : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750"
+                }`}
             >
               <FileText className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">

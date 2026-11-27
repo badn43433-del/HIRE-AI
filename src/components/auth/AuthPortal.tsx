@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { 
-  ShieldCheck, Lock, Mail, User, Eye, EyeOff, 
+import {
+  ShieldCheck, Lock, Mail, User, Eye, EyeOff,
   ArrowRight, CheckCircle2, KeyRound, Sparkles, AlertCircle,
   Shield, UserCheck, RefreshCw, Send, Check, Settings,
   ExternalLink, ChevronDown, ChevronUp
@@ -24,7 +24,7 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
   // Current mode: login | signup | forgot | otp
   const [authMode, setAuthMode] = useState<"login" | "signup" | "forgot" | "otp">("login");
   const [selectedRole, setSelectedRole] = useState<UserRole>("candidate");
-  
+
   // Form fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,7 +32,7 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [otpCode, setOtpCode] = useState(["", "", "", "", "", ""]);
-  
+
   // Real OTP & SMTP states
   const [serverOtp, setServerOtp] = useState("849201");
   const [isLiveSmtp, setIsLiveSmtp] = useState(false);
@@ -81,7 +81,7 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
           setSmtpUser(data.senderEmail || "");
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Quick fill sandbox accounts
@@ -411,7 +411,7 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
       <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
 
       {/* Main Glassmorphism Card */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
@@ -448,11 +448,10 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
                     setSelectedRole(role);
                     triggerQuickFill(role);
                   }}
-                  className={`py-2 px-3 rounded-xl text-xs font-semibold capitalize transition-all cursor-pointer flex flex-col items-center justify-center gap-1 ${
-                    selectedRole === role 
-                      ? "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md shadow-indigo-600/30" 
-                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
-                  }`}
+                  className={`py-2 px-3 rounded-xl text-xs font-semibold capitalize transition-all cursor-pointer flex flex-col items-center justify-center gap-1 ${selectedRole === role
+                    ? "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md shadow-indigo-600/30"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                    }`}
                 >
                   <span className="capitalize">{role}</span>
                 </button>
@@ -497,7 +496,7 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
         {/* Feedback Alerts */}
         <AnimatePresence>
           {errorText && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
@@ -509,7 +508,7 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
           )}
 
           {successText && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
@@ -883,7 +882,7 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
                   <p className="text-[10px] text-slate-400 leading-relaxed">
                     To send live emails to <span className="text-white font-mono">{email}</span>, connect a Gmail account with an <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="text-indigo-400 underline font-semibold">App Password</a>:
                   </p>
-                  
+
                   <div className="space-y-2">
                     <div>
                       <label className="text-[10px] text-slate-400 block mb-0.5">Sender Gmail Address</label>

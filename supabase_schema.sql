@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS public.sessions (
 CREATE TABLE IF NOT EXISTS public.suspicious_activities (
     id TEXT PRIMARY KEY DEFAULT ('alert-' || substr(md5(random()::text), 1, 8)),
     session_id TEXT REFERENCES public.sessions(id) ON DELETE CASCADE,
-    type TEXT NOT NULL CHECK (type IN ('tab_switch', 'focus_lost', 'multiple_faces', 'no_face', 'reading_behavior', 'mobile_phone', 'copy_paste')),
+    type TEXT NOT NULL CHECK (type IN ('tab_switch', 'focus_lost', 'multiple_faces', 'no_face', 'reading_behavior', 'mobile_phone', 'copy_paste', 'background_noise')),
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     description TEXT NOT NULL,
     severity TEXT NOT NULL CHECK (severity IN ('low', 'medium', 'high')),
@@ -164,7 +164,8 @@ ALTER TABLE public.candidate_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.scheduled_interviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE npx --yes localtunnel --port 3000public.suspicious_activities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.suspicious_activities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.rubric_evaluations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_audit_logs ENABLE ROW LEVEL SECURITY;

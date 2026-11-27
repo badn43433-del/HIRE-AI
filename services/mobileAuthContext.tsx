@@ -26,7 +26,6 @@ interface MobileAuthContextValue {
   toggleTheme: () => void;
   signIn: (email: string, password: string) => Promise<MobileSession>;
   signUp: (name: string, email: string, password: string, role: UserRole) => Promise<MobileSession>;
-  switchRole: (role: UserRole) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -144,12 +143,6 @@ export function MobileAuthProvider({ children }: { children: React.ReactNode }) 
     return next;
   };
 
-  const switchRole = async (role: UserRole) => {
-    if (!session) return;
-    const updated: MobileSession = { ...session, role };
-    await persistSession(updated);
-  };
-
   const signOut = async () => {
     setSession(null);
     await removeStorage(SESSION_KEY);
@@ -170,7 +163,6 @@ export function MobileAuthProvider({ children }: { children: React.ReactNode }) 
         toggleTheme,
         signIn,
         signUp,
-        switchRole,
         signOut,
       }}
     >

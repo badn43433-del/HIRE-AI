@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
-import { ShieldCheck, FileText, LogOut, ShieldAlert, RefreshCw } from "lucide-react";
+import { ShieldCheck, FileText, LogOut, ShieldAlert, RefreshCw, Maximize } from "lucide-react";
 
 import AuthPortal from "./components/auth/AuthPortal";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -19,6 +19,13 @@ import { useAuth } from "./context/AuthContext";
 import { UserRole, AIEvaluationReport } from "./types";
 import { fetchReports } from "./supabaseClient";
 import { detectBrowserExtensions, ExtensionDetectionResult } from "./utils/extensionDetector";
+import {
+  addFullscreenChangeListener,
+  enterFullscreen,
+  exitFullscreenSafe,
+  getFullscreenElement,
+  isFullscreenSupported,
+} from "./utils/fullscreen";
 
 export default function App() {
   const {
@@ -37,6 +44,7 @@ export default function App() {
 
   const [reports, setReports] = useState<AIEvaluationReport[]>([]);
   const [extensionLock, setExtensionLock] = useState<ExtensionDetectionResult>(() => detectBrowserExtensions());
+  const [fullscreenLock, setFullscreenLock] = useState<boolean>(false);
 
   useEffect(() => {
     const check = () => setExtensionLock(detectBrowserExtensions());
@@ -44,6 +52,38 @@ export default function App() {
     const timer = setInterval(check, 3000);
     return () => clearInterval(timer);
   }, []);
+
+  // Global fullscreenchange guard active whenever user is logged in
+  useEffect(() => {
+    if (!isAuthenticated || isLoading) {
+      setFullscreenLock(false);
+      return;
+    }
+
+    const isAutomated = typeof navigator !== "undefined" && Boolean((navigator as any).webdriver);
+    const inRestrictedIframe = typeof window !== "undefined" && window.self !== window.top;
+
+    // Short grace delay lets async requestFullscreen() from login click settle before checking
+    const graceTimer = setTimeout(() => {
+      if (!isAutomated && !inRestrictedIframe && isFullscreenSupported() && !getFullscreenElement()) {
+        setFullscreenLock(true);
+      }
+    }, 450);
+
+    const handleFsChange = () => {
+      if (!getFullscreenElement() && !isAutomated && !inRestrictedIframe && isFullscreenSupported()) {
+        setFullscreenLock(true);
+      } else if (getFullscreenElement()) {
+        setFullscreenLock(false);
+      }
+    };
+
+    const unsub = addFullscreenChangeListener(handleFsChange);
+    return () => {
+      clearTimeout(graceTimer);
+      unsub();
+    };
+  }, [isAuthenticated, isLoading]);
 
   const loadReports = () => {
     fetchReports()
@@ -66,6 +106,8 @@ export default function App() {
   };
 
   const handleLogout = async () => {
+    setFullscreenLock(false);
+    await exitFullscreenSafe();
     await logout();
     navigate("/login", { replace: true });
   };
@@ -294,6 +336,42 @@ export default function App() {
 
       {/* Floating Groq-Powered AI Chat Assistant */}
       <AIChatAssistant userRole={userRole} userName={userName} />
+
+      {/* Anti-Cheat Fullscreen Enforcement Overlay */}
+      {fullscreenLock && (
+        <div
+          id="fullscreen-lock-overlay"
+          className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md text-white flex items-center justify-center p-6"
+        >
+          <div className="max-w-md w-full bg-slate-900 border border-amber-500/60 rounded-3xl p-7 shadow-2xl space-y-5 text-center">
+            <div className="h-14 w-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mx-auto">
+              <Maximize className="h-7 w-7 text-amber-400" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-lg font-heading font-extrabold text-amber-300">
+                Fullscreen Mode Required
+              </h2>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Fullscreen mode is required during your proctored session. Exiting fullscreen via Esc or F11 is restricted until you sign out.
+              </p>
+            </div>
+            <button
+              id="reenter-fullscreen-btn"
+              type="button"
+              onClick={async () => {
+                const ok = await enterFullscreen();
+                if (ok || getFullscreenElement()) {
+                  setFullscreenLock(false);
+                }
+              }}
+              className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/30"
+            >
+              <Maximize className="h-4 w-4" />
+              <span>Re-enter Fullscreen</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

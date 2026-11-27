@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { UserRole } from "../../types";
 import { isSupabaseConnected, signInWithSupabase, signUpWithSupabase } from "../../supabaseClient";
 import { detectBrowserExtensions, ExtensionDetectionResult } from "../../utils/extensionDetector";
+import { enterFullscreen } from "../../utils/fullscreen";
 
 interface AuthPortalProps {
   onLoginSuccess: (name: string, email: string, role: UserRole, userId?: string) => void;
@@ -143,6 +144,9 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
     setErrorText("");
     setSuccessText("");
 
+    // Trigger fullscreen synchronously inside user-gesture handler before any await
+    void enterFullscreen();
+
     const ext = runExtensionScan();
     if (ext.detected) {
       setErrorText("Login blocked: Disable all browser extensions and click Re-scan Browser to continue.");
@@ -209,6 +213,9 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
     e.preventDefault();
     setErrorText("");
     setSuccessText("");
+
+    // Trigger fullscreen synchronously inside user-gesture handler before any await
+    void enterFullscreen();
 
     const ext = runExtensionScan();
     if (ext.detected) {
@@ -319,6 +326,8 @@ export default function AuthPortal({ onLoginSuccess }: AuthPortalProps) {
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Re-ensure fullscreen synchronously inside user-gesture handler
+    void enterFullscreen();
     const ext = runExtensionScan();
     if (ext.detected) {
       setErrorText("Verification blocked: Browser extension detected. Disable extensions to proceed.");
